@@ -10,6 +10,8 @@ seria a operação em um sistema moderno.
 > **Este projeto não tem backend.** Todos os dados são fictícios e vivem em
 > memória. É um artefato de demonstração — não um produto em produção.
 
+**Demonstração online:** <https://mvp-red-tennis.vercel.app>
+
 ---
 
 ## Como rodar
