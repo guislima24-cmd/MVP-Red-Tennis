@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Sem dependencia de fonte externa: o projeto roda offline com `npm run dev`. */
+  --font-sans: "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-areia-100 text-areia-900 font-sans;
+  }
+
+  /* Fundo levemente texturizado, lembrando o pó de saibro. */
+  .fundo-arena {
+    background-color: #f4f1ec;
+    background-image:
+      radial-gradient(
+        1200px 600px at 15% -10%,
+        rgba(210, 112, 58, 0.14),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at 100% 0%,
+        rgba(163, 42, 28, 0.08),
+        transparent 55%
+      );
+  }
+
+  ::selection {
+    background-color: rgba(210, 112, 58, 0.25);
+  }
+
+  *:focus-visible {
+    outline: 2px solid #b95a28;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* min-w-0: sem isso, tabelas com largura minima estouram o grid no celular. */
+  .card {
+    @apply min-w-0 rounded-2xl border border-areia-200 bg-white shadow-card;
+  }
+
+  .card-titulo {
+    @apply text-sm font-semibold uppercase tracking-wide text-areia-600;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primario {
+    @apply btn bg-tijolo-600 text-white shadow-sm hover:bg-tijolo-700 active:scale-[0.98];
+  }
+
+  .btn-secundario {
+    @apply btn border border-areia-300 bg-white text-areia-800 hover:border-saibro-400 hover:bg-saibro-50 hover:text-saibro-800;
+  }
+
+  .btn-fantasma {
+    @apply btn text-areia-600 hover:bg-areia-200/70 hover:text-areia-900;
+  }
+
+  .campo {
+    @apply w-full rounded-xl border border-areia-300 bg-white px-3.5 py-2.5 text-sm text-areia-900 placeholder:text-areia-400 focus:border-saibro-500 focus:outline-none focus:ring-2 focus:ring-saibro-500/20;
+  }
+
+  /* Barra de rolagem discreta, usada na grade da agenda. */
+  .rolagem-suave {
+    scrollbar-width: thin;
+    scrollbar-color: #d6cec2 transparent;
+  }
+  .rolagem-suave::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .rolagem-suave::-webkit-scrollbar-thumb {
+    background-color: #d6cec2;
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  .rolagem-suave::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}

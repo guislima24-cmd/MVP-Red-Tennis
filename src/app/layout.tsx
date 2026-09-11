@@ -1,0 +1,28 @@
+import type { Metadata, Viewport } from "next";
+import { AppProvider } from "@/store/AppStore";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "Red Tennis · Sistema de Gestão",
+  description:
+    "MVP do sistema de gestão da arena Red Tennis — agenda, alunos, financeiro e ranking.",
+  icons: {
+    icon: "/favicon.svg",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#B95A28",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="pt-BR">
+      <body>
+        <AppProvider>{children}</AppProvider>
+      </body>
+    </html>
+  );
+}

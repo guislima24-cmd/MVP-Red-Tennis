@@ -1,0 +1,286 @@
+"use client";
+
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Legenda } from "@/components/agenda/Legenda";
+import { VisaoMensal } from "@/components/agenda/VisaoMensal";
+import { VisaoSemanal } from "@/components/agenda/VisaoSemanal";
+import { Card } from "@/components/ui/Card";
+import { Segmentado } from "@/components/ui/Segmentado";
+import {
+  IconeAgenda,
+  IconeAlerta,
+  IconeAnterior,
+  IconeFiltro,
+  IconeProximo,
+} from "@/components/ui/Icons";
+import {
+  datasDaSemana,
+  formatarDiaMes,
+  formatarMesAno,
+  somarDias,
+  somarMeses,
+} from "@/lib/date";
+import { HOJE, QUADRAS } from "@/lib/mock-data";
+import {
+  contarConflitos,
+  listarHorarios,
+  listarProfessores,
+  type FiltroAgenda,
+} from "@/lib/selectors";
+import { ORDEM_TIPOS, rotuloQuadra } from "@/lib/theme";
+import type { Quadra, TipoAlocacao } from "@/lib/types";
+
+export default function PaginaAgenda() {
+  return (
+    <Suspense fallback={<div className="card h-96 animate-pulse" />}>
+      <Agenda />
+    </Suspense>
+  );
+}
+
+function Agenda() {
+  const parametros = useSearchParams();
+  const quadraDaUrl = parametros.get("quadra");
+
+  const [visao, setVisao] = useState<"semana" | "mes">("semana");
+  const [referencia, setReferencia] = useState(HOJE);
+  const [quadra, setQuadra] = useState<Quadra | "todas">(() =>
+    normalizarQuadra(quadraDaUrl),
+  );
+  const [professor, setProfessor] = useState<string>("todos");
+  const [tipo, setTipo] = useState<TipoAlocacao | "todos">("todos");
+
+  const filtro: FiltroAgenda = useMemo(
+    () => ({ quadra, professor, tipo }),
+    [quadra, professor, tipo],
+  );
+
+  const datas = useMemo(() => datasDaSemana(referencia), [referencia]);
+  const total = listarHorarios(filtro).length;
+  const conflitos = contarConflitos(filtro);
+  const professores = listarProfessores();
+
+  function navegar(direcao: -1 | 1) {
+    setReferencia((atual) =>
+      visao === "semana"
+        ? somarDias(atual, direcao * 7)
+        : somarMeses(atual, direcao),
+    );
+  }
+
+  const titulo =
+    visao === "semana"
+      ? `${formatarDiaMes(datas[0])} — ${formatarDiaMes(datas[6])}`
+      : formatarMesAno(referencia);
+
+  return (
+    <div className="space-y-5">
+      {/* Cabecalho */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-areia-900 sm:text-3xl">Agenda</h1>
+          <p className="mt-1 text-sm text-areia-600">
+            {total} horários na grade · funcionamento das 07h às 22h
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-xl border border-areia-200 bg-white p-1">
+            <button
+              type="button"
+              onClick={() => navegar(-1)}
+              className="btn-fantasma px-2 py-1.5"
+              aria-label={visao === "semana" ? "Semana anterior" : "Mês anterior"}
+            >
+              <IconeAnterior className="h-4 w-4" />
+            </button>
+            <span className="min-w-[124px] text-center text-sm font-semibold text-areia-800 first-letter:uppercase">
+              {titulo}
+            </span>
+            <button
+              type="button"
+              onClick={() => navegar(1)}
+              className="btn-fantasma px-2 py-1.5"
+              aria-label={visao === "semana" ? "Próxima semana" : "Próximo mês"}
+            >
+              <IconeProximo className="h-4 w-4" />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setReferencia(HOJE)}
+            className="btn-secundario py-2"
+          >
+            Hoje
+          </button>
+
+          <Segmentado
+            aria="Modo de visualização"
+            valor={visao}
+            aoMudar={setVisao}
+            opcoes={[
+              { valor: "semana", rotulo: "Semana" },
+              { valor: "mes", rotulo: "Mês" },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Alerta de conflitos */}
+      {conflitos > 0 && (
+        <div className="flex items-start gap-3 rounded-2xl border border-tijolo-200 bg-tijolo-50/70 px-4 py-3">
+          <IconeAlerta className="mt-0.5 h-5 w-5 shrink-0 text-tijolo-600" />
+          <div>
+            <p className="text-sm font-semibold text-tijolo-800">
+              {conflitos} horários em conflito nesta grade
+            </p>
+            <p className="text-xs text-tijolo-700/80">
+              Há mais de um agendamento ocupando a mesma quadra no mesmo horário —
+              os eventos afetados estão destacados com borda vermelha.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Filtros */}
+      <Card>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-areia-200 px-4 py-3">
+          <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-areia-500">
+            <IconeFiltro className="h-4 w-4" />
+            Filtros
+          </span>
+
+          <GrupoFiltro rotulo="Quadra">
+            <BotaoFiltro
+              ativo={quadra === "todas"}
+              aoClicar={() => setQuadra("todas")}
+            >
+              Todas
+            </BotaoFiltro>
+            {QUADRAS.map((q) => (
+              <BotaoFiltro
+                key={String(q)}
+                ativo={quadra === q}
+                aoClicar={() => setQuadra(q)}
+              >
+                {rotuloQuadra(q)}
+              </BotaoFiltro>
+            ))}
+          </GrupoFiltro>
+
+          <GrupoFiltro rotulo="Professor">
+            <BotaoFiltro
+              ativo={professor === "todos"}
+              aoClicar={() => setProfessor("todos")}
+            >
+              Todos
+            </BotaoFiltro>
+            {professores.map((p) => (
+              <BotaoFiltro
+                key={p.id}
+                ativo={professor === p.nome}
+                aoClicar={() => setProfessor(p.nome)}
+                cor={p.cor}
+              >
+                {p.nome}
+              </BotaoFiltro>
+            ))}
+          </GrupoFiltro>
+
+          <GrupoFiltro rotulo="Tipo">
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value as TipoAlocacao | "todos")}
+              className="rounded-lg border border-areia-200 bg-white px-2.5 py-1.5 text-xs font-medium text-areia-700 focus:border-saibro-500 focus:outline-none"
+            >
+              <option value="todos">Todos os tipos</option>
+              {ORDEM_TIPOS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </GrupoFiltro>
+        </div>
+
+        <div className="border-b border-areia-200 px-4 py-2.5">
+          <Legenda />
+        </div>
+
+        {visao === "semana" ? (
+          <VisaoSemanal datas={datas} filtro={filtro} />
+        ) : (
+          <VisaoMensal
+            referencia={referencia}
+            filtro={filtro}
+            aoSelecionarDia={(data) => {
+              setReferencia(data);
+              setVisao("semana");
+            }}
+          />
+        )}
+      </Card>
+
+      <p className="flex items-center gap-2 text-xs text-areia-500">
+        <IconeAgenda className="h-4 w-4" />
+        Clique no nome de um aluno para abrir a ficha completa.
+      </p>
+    </div>
+  );
+}
+
+function normalizarQuadra(valor: string | null): Quadra | "todas" {
+  if (!valor) return "todas";
+  if (valor === "paredao") return "paredao";
+  const numero = Number(valor);
+  return numero >= 1 && numero <= 4 ? (numero as Quadra) : "todas";
+}
+
+function GrupoFiltro({
+  rotulo,
+  children,
+}: {
+  rotulo: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-xs font-medium text-areia-500">{rotulo}:</span>
+      {children}
+    </div>
+  );
+}
+
+function BotaoFiltro({
+  ativo,
+  aoClicar,
+  children,
+  cor,
+}: {
+  ativo: boolean;
+  aoClicar: () => void;
+  children: React.ReactNode;
+  cor?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={aoClicar}
+      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
+        ativo
+          ? "bg-saibro-600 text-white"
+          : "bg-areia-100 text-areia-700 hover:bg-areia-200"
+      }`}
+    >
+      {cor && (
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: ativo ? "#fff" : cor }}
+        />
+      )}
+      {children}
+    </button>
+  );
+}
