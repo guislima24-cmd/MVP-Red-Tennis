@@ -1,16 +1,15 @@
 # Fotos dos alunos
 
-Coloque aqui as fotos reais, **nomeadas com o id do aluno**:
+As fotos dos 23 membros cadastrados pelo cliente já estão aqui, nomeadas com o
+id de cada pessoa (`a01.jpg` … `a23.jpg`). A ordem dos ids segue a posição no
+ranking: `a01` é o primeiro colocado.
 
-```
-public/avatars/a01.jpg
-public/avatars/a02.jpg
-...
-```
+## Adicionar a foto de mais alguém
 
-Os ids são os definidos em `src/lib/mock-data.ts` (`a01`–`a20` para os alunos
-principais, `b01`–`b70` para os demais matriculados).
+1. Salve o arquivo como `public/avatars/<id>.jpg` — de preferência quadrado,
+   enquadrado no rosto, com cerca de 400×400.
+2. Inclua o id em `IDS_COM_FOTO`, em `src/lib/mock-data.ts`.
 
-Enquanto o arquivo de um aluno não existir, o componente `<Avatar>` exibe
-automaticamente um placeholder com as iniciais do nome sobre uma cor derivada
-do id — não é preciso alterar código para trocar entre foto e placeholder.
+Quem não está nessa lista aparece com um placeholder de iniciais sobre uma cor
+derivada do id. O componente `<Avatar>` também cai no placeholder se o arquivo
+existir na lista mas falhar ao carregar.

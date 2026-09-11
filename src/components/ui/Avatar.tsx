@@ -23,11 +23,11 @@ const TAMANHOS: Record<NonNullable<AvatarProps["tamanho"]>, string> = {
 };
 
 /**
- * Avatar do aluno.
+ * Avatar de uma pessoa (aluno ou professor).
  *
- * A estrutura ja esta pronta para receber fotos reais: basta salvar o arquivo
- * em `public/avatars/[id].jpg`. Enquanto o arquivo nao existir, o componente
- * exibe as iniciais do aluno sobre uma cor estavel derivada do id.
+ * Recebe `src` de `caminhoAvatar(id)`, que so devolve um caminho para quem tem
+ * foto em `public/avatars/`. Sem foto — ou se o arquivo falhar — exibe as
+ * iniciais sobre uma cor estavel derivada do id.
  */
 export function Avatar({
   id,

@@ -151,9 +151,11 @@ Todas as telas usam o mesmo componente — não é preciso alterar mais nada.
 
 ### Fotos dos alunos
 
-Salve as fotos em `public/avatars/[id].jpg` (ex.: `public/avatars/a01.jpg`).
-Enquanto o arquivo não existir, o componente `<Avatar>` mostra as iniciais do
-aluno sobre uma cor estável derivada do id. Veja `public/avatars/README.md`.
+As fotos dos 23 membros já estão em `public/avatars/`, nomeadas com o id de cada
+pessoa. Para incluir mais alguém: salve `public/avatars/<id>.jpg` e adicione o id
+em `IDS_COM_FOTO`, em `src/lib/mock-data.ts`. Quem não está nessa lista aparece
+com as iniciais sobre uma cor estável derivada do id — veja
+`public/avatars/README.md`.
 
 ---
 
@@ -163,11 +165,13 @@ Gerados de forma **determinística** em `src/lib/mock-data.ts` — a demonstraç
 mostra sempre os mesmos dados, e as datas são ancoradas em "hoje" para que o
 sistema pareça em uso em qualquer dia de apresentação.
 
-- **20 alunos principais**, escritos à mão, com histórico completo — são também
-  os 20 inscritos na etapa atual do ranking.
+- **23 membros reais** cadastrados pelo cliente, com foto em `public/avatars/`
+  — são os inscritos na etapa atual do ranking, na ordem definida pela arena
+  (`a01` é o primeiro colocado).
 - **70 demais matriculados**, gerados a partir de listas de nomes, para que a
   grade semanal (≈ 200 horários) tenha um número plausível de pessoas.
-  Todos têm ficha completa e navegável.
+  Todos têm ficha completa e navegável, com placeholder de iniciais no lugar
+  da foto.
 - **3 professores fixos**, conflitos de horário plantados de propósito e dias
   cancelados por chuva no calendário.
 - **24 produtos** no estoque do balcão, com itens propositalmente abaixo do

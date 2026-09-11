@@ -170,9 +170,9 @@ export const SEM_PROFESSOR = "Sem professor";
 // Alunos (base)
 //
 // O cadastro tem duas camadas:
-//  1. ALUNOS_PRINCIPAIS — 20 cadastros escritos a mao, com variacao realista de
-//     plano, tempo de casa, professor e desempenho. Sao os alunos usados nas
-//     demonstracoes de ficha e os 20 inscritos na etapa atual do ranking.
+//  1. ALUNOS_PRINCIPAIS — os 23 membros reais cadastrados pelo cliente, com
+//     foto em /public/avatars. Sao os alunos usados nas demonstracoes de ficha
+//     e os 23 inscritos na etapa atual do ranking.
 //  2. ALUNOS_EXTRAS — demais matriculados da arena, gerados a partir de listas
 //     de nomes. Existem para que a grade semanal (cerca de 200 horarios) tenha
 //     um numero plausivel de pessoas: com apenas 20 alunos, cada um apareceria
@@ -203,26 +203,29 @@ interface AlunoBase {
 }
 
 const ALUNOS_PRINCIPAIS: AlunoBase[] = [
-  { id: "a01", nome: "Ana Beatriz Moraes", telefone: "(11) 98812-4471", email: "ana.moraes@email.com", plano: "Individual", mesesDeCasa: 26, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 120, planoCongelado: false, rankingPontuacao: 1480, categoriaRanking: "A", variacaoRanking: 2, diaVencimento: 5, mensalidade: 720 },
-  { id: "a02", nome: "Bruno Tanaka", telefone: "(11) 99640-2210", email: "bruno.tanaka@email.com", plano: "Individual", mesesDeCasa: 19, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 1425, categoriaRanking: "A", variacaoRanking: -1, diaVencimento: 10, mensalidade: 720 },
-  { id: "a03", nome: "Carla Siqueira", telefone: "(11) 97733-1908", email: "carla.siqueira@email.com", plano: "Dupla", mesesDeCasa: 31, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 1390, categoriaRanking: "A", variacaoRanking: 1, diaVencimento: 5, mensalidade: 520 },
-  { id: "a04", nome: "Daniel Vasconcelos", telefone: "(11) 98120-6654", email: "daniel.vasc@email.com", plano: "Locação Mensal", mesesDeCasa: 14, professorPrincipal: "Sem professor", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 1305, categoriaRanking: "B", variacaoRanking: 3, diaVencimento: 15, mensalidade: 640 },
-  { id: "a05", nome: "Eduarda Prado", telefone: "(11) 99012-7745", email: "duda.prado@email.com", plano: "Individual", mesesDeCasa: 8, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 180, planoCongelado: false, rankingPontuacao: 1288, categoriaRanking: "B", variacaoRanking: 0, diaVencimento: 20, mensalidade: 720 },
-  { id: "a06", nome: "Felipe Andrade", telefone: "(11) 98455-3321", email: "felipe.andrade@email.com", plano: "LAP", mesesDeCasa: 11, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 1262, categoriaRanking: "B", variacaoRanking: -2, diaVencimento: 10, mensalidade: 380 },
-  { id: "a07", nome: "Gabriela Lins", telefone: "(11) 97188-9902", email: "gabi.lins@email.com", plano: "Dupla", mesesDeCasa: 22, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 90, planoCongelado: false, rankingPontuacao: 1244, categoriaRanking: "B", variacaoRanking: 4, diaVencimento: 5, mensalidade: 520 },
-  { id: "a08", nome: "Henrique Bastos", telefone: "(11) 99807-5512", email: "henrique.bastos@email.com", plano: "Individual", mesesDeCasa: 37, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 0, planoCongelado: true, motivoCongelamento: "Viagem a trabalho — retorno previsto em 45 dias", rankingPontuacao: 1230, categoriaRanking: "B", variacaoRanking: -5, diaVencimento: 15, mensalidade: 720 },
-  { id: "a09", nome: "Isabela Ferraz", telefone: "(11) 98344-1180", email: "isabela.ferraz@email.com", plano: "Individual", mesesDeCasa: 5, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 240, planoCongelado: false, rankingPontuacao: 1198, categoriaRanking: "B", variacaoRanking: 6, diaVencimento: 25, mensalidade: 720 },
-  { id: "a10", nome: "João Pedro Rocha", telefone: "(11) 99551-4408", email: "jp.rocha@email.com", plano: "Locação Avulsa", mesesDeCasa: 3, professorPrincipal: "Sem professor", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 1176, categoriaRanking: "B", variacaoRanking: 1, diaVencimento: 1, mensalidade: 0 },
-  { id: "a11", nome: "Karina Melo", telefone: "(11) 97622-3096", email: "karina.melo@email.com", plano: "Dupla", mesesDeCasa: 17, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 30, planoCongelado: false, rankingPontuacao: 1154, categoriaRanking: "C", variacaoRanking: -1, diaVencimento: 10, mensalidade: 520 },
-  { id: "a12", nome: "Lucas Camargo", telefone: "(11) 98979-6631", email: "lucas.camargo@email.com", plano: "LAP", mesesDeCasa: 9, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 1131, categoriaRanking: "C", variacaoRanking: 2, diaVencimento: 20, mensalidade: 380 },
-  { id: "a13", nome: "Mariana Duarte", telefone: "(11) 99236-7714", email: "mari.duarte@email.com", plano: "Individual", mesesDeCasa: 28, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 120, planoCongelado: false, rankingPontuacao: 1108, categoriaRanking: "C", variacaoRanking: 0, diaVencimento: 5, mensalidade: 720 },
-  { id: "a14", nome: "Nelson Aguiar", telefone: "(11) 98701-2245", email: "nelson.aguiar@email.com", plano: "Locação Mensal", mesesDeCasa: 41, professorPrincipal: "Sem professor", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 1085, categoriaRanking: "C", variacaoRanking: -3, diaVencimento: 15, mensalidade: 640 },
-  { id: "a15", nome: "Otávio Brandão", telefone: "(11) 97455-8820", email: "otavio.brandao@email.com", plano: "Individual", mesesDeCasa: 7, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 90, planoCongelado: false, rankingPontuacao: 1061, categoriaRanking: "C", variacaoRanking: 5, diaVencimento: 25, mensalidade: 720 },
-  { id: "a16", nome: "Patrícia Nunes", telefone: "(11) 99118-3374", email: "patricia.nunes@email.com", plano: "Dupla", mesesDeCasa: 13, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 45, planoCongelado: false, rankingPontuacao: 1038, categoriaRanking: "D", variacaoRanking: -2, diaVencimento: 10, mensalidade: 520 },
-  { id: "a17", nome: "Rafael Quintana", telefone: "(11) 98266-9951", email: "rafael.quintana@email.com", plano: "LAP", mesesDeCasa: 4, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 120, planoCongelado: false, rankingPontuacao: 1012, categoriaRanking: "D", variacaoRanking: 3, diaVencimento: 20, mensalidade: 380 },
-  { id: "a18", nome: "Sofia Bertolli", telefone: "(11) 99884-1127", email: "sofia.bertolli@email.com", plano: "Individual", mesesDeCasa: 6, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 150, planoCongelado: true, motivoCongelamento: "Lesão no ombro — congelado a pedido, com atestado", rankingPontuacao: 986, categoriaRanking: "D", variacaoRanking: -4, diaVencimento: 5, mensalidade: 720 },
-  { id: "a19", nome: "Thiago Malta", telefone: "(11) 97390-6608", email: "thiago.malta@email.com", plano: "Locação Avulsa", mesesDeCasa: 2, professorPrincipal: "Sem professor", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 954, categoriaRanking: "D", variacaoRanking: 1, diaVencimento: 1, mensalidade: 0 },
-  { id: "a20", nome: "Vivian Okamoto", telefone: "(11) 98533-7742", email: "vivian.okamoto@email.com", plano: "Individual", mesesDeCasa: 10, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 921, categoriaRanking: "D", variacaoRanking: 0, diaVencimento: 15, mensalidade: 720 },
+  { id: "a01", nome: "Guilherme Lima", telefone: "(11) 98812-4471", email: "guilherme.lima@email.com", plano: "Individual", mesesDeCasa: 31, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 120, planoCongelado: false, rankingPontuacao: 1480, categoriaRanking: "A", variacaoRanking: 1, diaVencimento: 5, mensalidade: 720 },
+  { id: "a02", nome: "Anna Beatriz", telefone: "(11) 99640-2210", email: "anna.beatriz@email.com", plano: "Individual", mesesDeCasa: 27, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 1442, categoriaRanking: "A", variacaoRanking: 2, diaVencimento: 10, mensalidade: 720 },
+  { id: "a03", nome: "Larissa Preto", telefone: "(11) 97733-1908", email: "larissa.preto@email.com", plano: "Dupla", mesesDeCasa: 34, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 1398, categoriaRanking: "A", variacaoRanking: -1, diaVencimento: 5, mensalidade: 520 },
+  { id: "a04", nome: "Felipe Ikeda", telefone: "(11) 98120-6654", email: "felipe.ikeda@email.com", plano: "Individual", mesesDeCasa: 19, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 90, planoCongelado: false, rankingPontuacao: 1355, categoriaRanking: "B", variacaoRanking: 3, diaVencimento: 15, mensalidade: 720 },
+  { id: "a05", nome: "Igor", telefone: "(11) 99012-7745", email: "igor@email.com", plano: "Locação Mensal", mesesDeCasa: 14, professorPrincipal: "Sem professor", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 1327, categoriaRanking: "B", variacaoRanking: 0, diaVencimento: 15, mensalidade: 640 },
+  { id: "a06", nome: "Leonardo Aguilar", telefone: "(11) 98455-3321", email: "leonardo.aguilar@email.com", plano: "Individual", mesesDeCasa: 22, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 180, planoCongelado: false, rankingPontuacao: 1298, categoriaRanking: "B", variacaoRanking: 4, diaVencimento: 20, mensalidade: 720 },
+  { id: "a07", nome: "Eduardo Piton", telefone: "(11) 97188-9902", email: "eduardo.piton@email.com", plano: "LAP", mesesDeCasa: 11, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 1274, categoriaRanking: "B", variacaoRanking: -2, diaVencimento: 10, mensalidade: 380 },
+  { id: "a08", nome: "Isadora", telefone: "(11) 99807-5512", email: "isadora@email.com", plano: "Dupla", mesesDeCasa: 25, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 90, planoCongelado: false, rankingPontuacao: 1251, categoriaRanking: "B", variacaoRanking: 2, diaVencimento: 5, mensalidade: 520 },
+  { id: "a09", nome: "Lucas", telefone: "(11) 98344-1180", email: "lucas@email.com", plano: "Individual", mesesDeCasa: 37, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 0, planoCongelado: true, motivoCongelamento: "Viagem a trabalho — retorno previsto em 45 dias", rankingPontuacao: 1228, categoriaRanking: "B", variacaoRanking: -5, diaVencimento: 15, mensalidade: 720 },
+  { id: "a10", nome: "Gustavo", telefone: "(11) 99551-4408", email: "gustavo@email.com", plano: "Individual", mesesDeCasa: 8, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 240, planoCongelado: false, rankingPontuacao: 1205, categoriaRanking: "B", variacaoRanking: 6, diaVencimento: 25, mensalidade: 720 },
+  { id: "a11", nome: "Henrique", telefone: "(11) 97622-3096", email: "henrique@email.com", plano: "LAP", mesesDeCasa: 6, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 1180, categoriaRanking: "C", variacaoRanking: 1, diaVencimento: 20, mensalidade: 380 },
+  { id: "a12", nome: "Rafael", telefone: "(11) 98979-6631", email: "rafael@email.com", plano: "Individual", mesesDeCasa: 16, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 30, planoCongelado: false, rankingPontuacao: 1158, categoriaRanking: "C", variacaoRanking: -1, diaVencimento: 10, mensalidade: 720 },
+  { id: "a13", nome: "Samuel", telefone: "(11) 99236-7714", email: "samuel@email.com", plano: "Dupla", mesesDeCasa: 12, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 1136, categoriaRanking: "C", variacaoRanking: 2, diaVencimento: 20, mensalidade: 520 },
+  { id: "a14", nome: "Froner", telefone: "(11) 98701-2245", email: "froner@email.com", plano: "Individual", mesesDeCasa: 29, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 120, planoCongelado: false, rankingPontuacao: 1112, categoriaRanking: "C", variacaoRanking: 0, diaVencimento: 5, mensalidade: 720 },
+  { id: "a15", nome: "Thiago", telefone: "(11) 97455-8820", email: "thiago@email.com", plano: "Locação Mensal", mesesDeCasa: 41, professorPrincipal: "Sem professor", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 1089, categoriaRanking: "C", variacaoRanking: -3, diaVencimento: 15, mensalidade: 640 },
+  { id: "a16", nome: "Liu", telefone: "(11) 99118-3374", email: "liu@email.com", plano: "Individual", mesesDeCasa: 7, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 90, planoCongelado: false, rankingPontuacao: 1066, categoriaRanking: "C", variacaoRanking: 5, diaVencimento: 25, mensalidade: 720 },
+  { id: "a17", nome: "Alice", telefone: "(11) 98266-9951", email: "alice@email.com", plano: "Dupla", mesesDeCasa: 13, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 45, planoCongelado: false, rankingPontuacao: 1042, categoriaRanking: "D", variacaoRanking: -2, diaVencimento: 10, mensalidade: 520 },
+  { id: "a18", nome: "Caio", telefone: "(11) 99884-1127", email: "caio@email.com", plano: "LAP", mesesDeCasa: 4, professorPrincipal: "Márcio Bueno", saldoMinutosReposicao: 120, planoCongelado: false, rankingPontuacao: 1020, categoriaRanking: "D", variacaoRanking: 3, diaVencimento: 20, mensalidade: 380 },
+  { id: "a19", nome: "Maria Luiza", telefone: "(11) 97390-6608", email: "maria.luiza@email.com", plano: "Individual", mesesDeCasa: 9, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 150, planoCongelado: true, motivoCongelamento: "Lesão no ombro — congelado a pedido, com atestado", rankingPontuacao: 998, categoriaRanking: "D", variacaoRanking: -4, diaVencimento: 5, mensalidade: 720 },
+  { id: "a20", nome: "Lucas Freitas", telefone: "(11) 98533-7742", email: "lucas.freitas@email.com", plano: "Locação Avulsa", mesesDeCasa: 3, professorPrincipal: "Sem professor", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 975, categoriaRanking: "D", variacaoRanking: 1, diaVencimento: 1, mensalidade: 0 },
+  { id: "a21", nome: "Pedro Linhares", telefone: "(11) 99427-1165", email: "pedro.linhares@email.com", plano: "Individual", mesesDeCasa: 10, professorPrincipal: "Alexandre Pires", saldoMinutosReposicao: 60, planoCongelado: false, rankingPontuacao: 953, categoriaRanking: "D", variacaoRanking: 0, diaVencimento: 15, mensalidade: 720 },
+  { id: "a22", nome: "Larissa Farraresi", telefone: "(11) 97806-4432", email: "larissa.farraresi@email.com", plano: "Dupla", mesesDeCasa: 18, professorPrincipal: "Renata Coelho", saldoMinutosReposicao: 30, planoCongelado: false, rankingPontuacao: 931, categoriaRanking: "D", variacaoRanking: 2, diaVencimento: 5, mensalidade: 520 },
+  { id: "a23", nome: "João Xuxa", telefone: "(11) 98159-2287", email: "joao.xuxa@email.com", plano: "Locação Avulsa", mesesDeCasa: 2, professorPrincipal: "Sem professor", saldoMinutosReposicao: 0, planoCongelado: false, rankingPontuacao: 916, categoriaRanking: "D", variacaoRanking: -1, diaVencimento: 1, mensalidade: 0 },
 ];
 
 // --- Demais matriculados -----------------------------------------------------
@@ -317,10 +320,24 @@ const ALUNOS_EXTRAS = gerarAlunosExtras(70);
 
 const ALUNOS_BASE: AlunoBase[] = [...ALUNOS_PRINCIPAIS, ...ALUNOS_EXTRAS];
 
-/** Ids dos 20 alunos inscritos na etapa atual do ranking (piramide do torneio). */
+/** Ids dos 23 alunos inscritos na etapa atual do ranking (piramide do torneio). */
 export const IDS_INSCRITOS_RANKING = ALUNOS_PRINCIPAIS.map((a) => a.id);
 
 export const IDS_ALUNOS = ALUNOS_BASE.map((a) => a.id);
+
+/**
+ * Ids que possuem foto em `/public/avatars/[id].jpg`.
+ *
+ * Hoje sao os 23 membros cadastrados pelo cliente. Para adicionar a foto de
+ * mais alguem: salve o arquivo com o id da pessoa nessa pasta e inclua o id
+ * aqui — o restante da interface passa a usar a foto automaticamente. Quem nao
+ * esta na lista continua com o placeholder de iniciais, sem requisicao perdida.
+ */
+export const IDS_COM_FOTO = new Set<string>(ALUNOS_PRINCIPAIS.map((a) => a.id));
+
+export function caminhoAvatar(id: string): string | undefined {
+  return IDS_COM_FOTO.has(id) ? `/avatars/${id}.jpg` : undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Grade semanal de horarios (agenda)
@@ -854,8 +871,7 @@ export const ALUNOS: Aluno[] = ALUNOS_BASE.map((base, indice) => {
   return {
     id: base.id,
     nome: base.nome,
-    // O arquivo pode nao existir ainda — <Avatar> cai no placeholder de iniciais.
-    avatarUrl: `/avatars/${base.id}.jpg`,
+    avatarUrl: caminhoAvatar(base.id),
     telefone: base.telefone,
     email: base.email,
     plano: base.plano,
@@ -884,10 +900,11 @@ export const MENSALIDADE_POR_ALUNO: Record<string, number> = Object.fromEntries(
 // ---------------------------------------------------------------------------
 /**
  * Formato da piramide do torneio: 6 faixas, do topo para a base.
- * 1 + 2 + 3 + 4 + 5 + 5 = 20 posicoes, uma para cada aluno cadastrado.
- * As faixas sao agrupadas nas 4 categorias definidas com o cliente.
+ * 1 + 2 + 3 + 4 + 6 + 7 = 23 posicoes, uma para cada membro inscrito.
+ * As faixas sao agrupadas nas 4 categorias definidas com o cliente:
+ * A = faixas 1-2 (3 jogadores), B = faixas 3-4 (7), C = faixa 5 (6), D = faixa 6 (7).
  */
-export const LINHAS_PIRAMIDE = [1, 2, 3, 4, 5, 5];
+export const LINHAS_PIRAMIDE = [1, 2, 3, 4, 6, 7];
 
 export const CATEGORIA_POR_LINHA: CategoriaRanking[] = [
   "A",
@@ -904,7 +921,7 @@ export const TORNEIOS: Torneio[] = [
     nome: "Etapa 4 · Ranking Interno Red Tennis",
     data: somarDias(HOJE, 12),
     formato: "Pirâmide · 4 categorias · desafios semanais",
-    inscritos: 20,
+    inscritos: 23,
     status: "inscrições abertas",
   },
   {

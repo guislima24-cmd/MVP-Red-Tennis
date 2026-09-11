@@ -23,7 +23,7 @@ import {
   horaAtualArena,
   saudacao,
 } from "@/lib/date";
-import { HOJE } from "@/lib/mock-data";
+import { HOJE, caminhoAvatar } from "@/lib/mock-data";
 import {
   horariosDoDia,
   nomeCompacto,
@@ -187,7 +187,7 @@ export default function PaginaDashboard() {
                         key={id}
                         id={id}
                         nome={nomeDoAluno(id)}
-                        src={`/avatars/${id}.jpg`}
+                        src={caminhoAvatar(id)}
                         tamanho="sm"
                         comAnel
                         className="-ml-3 first:ml-0"
@@ -238,7 +238,7 @@ export default function PaginaDashboard() {
                     <Avatar
                       id={pagamento.alunoId}
                       nome={nomeDoAluno(pagamento.alunoId)}
-                      src={`/avatars/${pagamento.alunoId}.jpg`}
+                      src={caminhoAvatar(pagamento.alunoId)}
                       tamanho="sm"
                     />
                     <div className="min-w-0 flex-1">

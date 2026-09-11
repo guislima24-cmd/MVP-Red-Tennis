@@ -15,6 +15,7 @@ import {
   IconeVoltar,
 } from "@/components/ui/Icons";
 import { DIAS_SEMANA_CURTO } from "@/lib/date";
+import { caminhoAvatar } from "@/lib/mock-data";
 import {
   agendaDoProfessor,
   buscarProfessor,
@@ -63,7 +64,7 @@ export default function PaginaFichaProfessor() {
           <Avatar
             id={professor.id}
             nome={professor.nome}
-            src={`/avatars/${professor.id}.jpg`}
+            src={caminhoAvatar(professor.id)}
             tamanho="xl"
             comAnel
             className="-mt-12 shadow-card"
