@@ -208,3 +208,37 @@ export const IconeNota = (p: IconeProps) => (
     <path d="M9 9h6M9 13h3" />
   </Base>
 );
+
+export const IconeEstoque = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M3 8.5 12 4l9 4.5v7L12 20l-9-4.5z" />
+    <path d="M3 8.5 12 13l9-4.5M12 13v7" />
+  </Base>
+);
+
+export const IconeCopo = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M6 4h12l-1.2 15a2 2 0 0 1-2 1.9h-5.6a2 2 0 0 1-2-1.9z" />
+    <path d="M6.6 10h10.8" />
+  </Base>
+);
+
+export const IconeFechar = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </Base>
+);
+
+export const IconeEntrada = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M12 21V10M8 13.5l4-4 4 4" />
+    <path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2" />
+  </Base>
+);
+
+export const IconeLixeira = (p: IconeProps) => (
+  <Base {...p}>
+    <path d="M4 7h16M10 7V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2" />
+    <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+  </Base>
+);

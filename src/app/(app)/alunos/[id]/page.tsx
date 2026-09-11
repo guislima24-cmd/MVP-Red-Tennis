@@ -6,6 +6,7 @@ import { CabecalhoAluno } from "@/components/aluno/CabecalhoAluno";
 import { Comentarios } from "@/components/aluno/Comentarios";
 import { HistoricoAulas } from "@/components/aluno/HistoricoAulas";
 import { HistoricoPagamentos } from "@/components/aluno/HistoricoPagamentos";
+import { FichaConsumo } from "@/components/consumo/FichaConsumo";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/ui/StatCard";
@@ -28,7 +29,12 @@ import { useApp } from "@/store/AppStore";
 
 export default function PaginaFichaAluno() {
   const parametros = useParams<{ id: string }>();
-  const { obterAluno, adicionarComentario, alternarCongelamento } = useApp();
+  const {
+    horarios,
+    obterAluno,
+    adicionarComentario,
+    alternarCongelamento,
+  } = useApp();
 
   const aluno = obterAluno(parametros.id);
 
@@ -43,8 +49,8 @@ export default function PaginaFichaAluno() {
     );
   }
 
-  const resumo = resumoAluno(aluno);
-  const fixos = horariosDoAluno(aluno.id);
+  const resumo = resumoAluno(aluno, horarios);
+  const fixos = horariosDoAluno(aluno.id, horarios);
 
   return (
     <div className="space-y-6">
@@ -94,7 +100,7 @@ export default function PaginaFichaAluno() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid items-start gap-6 lg:grid-cols-3">
         <div className="min-w-0 space-y-6 lg:col-span-2">
           <HistoricoAulas aulas={aluno.historicoAulas} />
           <HistoricoPagamentos pagamentos={aluno.historicoPagamentos} />
@@ -204,6 +210,12 @@ export default function PaginaFichaAluno() {
               )}
             </ul>
           </Card>
+
+          <FichaConsumo
+            pessoaId={aluno.id}
+            tipoPessoa="aluno"
+            nomePessoa={aluno.nome}
+          />
 
           <Comentarios
             comentarios={aluno.comentarios}

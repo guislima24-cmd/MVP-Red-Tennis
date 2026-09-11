@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CardQuadra } from "@/components/dashboard/CardQuadra";
-import { corDoSaibro } from "@/components/dashboard/Quadra3D";
+import { corDaQuadra } from "@/components/dashboard/Quadra3D";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
@@ -37,16 +37,16 @@ import { ESTILO_TIPO, formatarMoeda, rotuloQuadra } from "@/lib/theme";
 import { useApp } from "@/store/AppStore";
 
 export default function PaginaDashboard() {
-  const { usuario } = useApp();
+  const { usuario, horarios } = useApp();
 
-  const ocupacoes = ocupacaoDasQuadras();
-  const resumo = resumoDoDia();
+  const ocupacoes = ocupacaoDasQuadras(HOJE, horarios);
+  const resumo = resumoDoDia(HOJE, horarios);
   const financeiro = resumoFinanceiro();
   const pendencias = reservasSemPagamento().slice(0, 4);
 
   const diaAtual = diaDaSemana(HOJE);
   const hora = horaAtualArena();
-  const agendaHoje = horariosDoDia(diaAtual);
+  const agendaHoje = horariosDoDia(diaAtual, {}, horarios);
   const proximas = agendaHoje
     .filter((h) => Number(h.horaInicio.slice(0, 2)) >= hora)
     .slice(0, 6);
@@ -79,7 +79,7 @@ export default function PaginaDashboard() {
         <StatCard
           rotulo="Aulas e locações hoje"
           valor={String(resumo.aulasHoje)}
-          detalhe={`Distribuídas entre as 4 quadras e o paredão`}
+          detalhe="Distribuídas entre as 4 quadras e o paredão"
           icone={<IconeAgenda className="h-5 w-5" />}
           tom="saibro"
         />
@@ -108,7 +108,7 @@ export default function PaginaDashboard() {
       <Card>
         <CardHeader
           titulo="Ocupação de hoje"
-          descricao="Quanto mais escuro o saibro, mais cheia está a quadra. Clique para abrir a agenda daquela quadra."
+          descricao="Quanto mais escuro o piso, mais cheia está a quadra. Clique para abrir a agenda daquela quadra."
           icone={<IconeQuadras className="h-5 w-5" />}
           acao={<EscalaOcupacao />}
         />
@@ -119,7 +119,7 @@ export default function PaginaDashboard() {
         </div>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid items-start gap-6 lg:grid-cols-3">
         {/* Agenda do dia */}
         <Card className="min-w-0 lg:col-span-2">
           <CardHeader
@@ -277,22 +277,27 @@ export default function PaginaDashboard() {
   );
 }
 
-/** Escala de referencia do gradiente de ocupacao. */
+/** Escala de referencia do gradiente de ocupacao, para os dois tipos de piso. */
 function EscalaOcupacao() {
   const passos = [0, 0.25, 0.5, 0.75, 1];
+
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[11px] text-areia-500">Livre</span>
-      <div className="flex overflow-hidden rounded-full border border-areia-200">
-        {passos.map((taxa) => (
-          <span
-            key={taxa}
-            className="h-3.5 w-6"
-            style={{ backgroundColor: corDoSaibro(taxa).media }}
-          />
-        ))}
-      </div>
-      <span className="text-[11px] text-areia-500">Lotada</span>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      {(["saibro", "cimento"] as const).map((piso) => (
+        <div key={piso} className="flex items-center gap-2">
+          <span className="text-[11px] capitalize text-areia-500">{piso}</span>
+          <div className="flex overflow-hidden rounded-full border border-areia-200">
+            {passos.map((taxa) => (
+              <span
+                key={taxa}
+                className="h-3.5 w-5"
+                style={{ backgroundColor: corDaQuadra(taxa, piso).media }}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+      <span className="text-[11px] text-areia-400">livre → lotada</span>
     </div>
   );
 }

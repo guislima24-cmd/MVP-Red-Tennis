@@ -1,10 +1,12 @@
 import type {
+  CategoriaProduto,
   CategoriaRanking,
   FormaPagamento,
   MotivoFalta,
   Quadra,
   StatusAula,
   TipoAlocacao,
+  TipoMovimento,
 } from "./types";
 
 /**
@@ -270,3 +272,62 @@ export function corAvatar(id: string): string {
   }
   return CORES_AVATAR[hash % CORES_AVATAR.length];
 }
+
+// ---------------------------------------------------------------------------
+// Estoque
+// ---------------------------------------------------------------------------
+/**
+ * Situacao do saldo de cada item.
+ * O cliente pediu "bater o olho e entender": cor + rotulo + barra de nivel,
+ * nunca so a cor.
+ */
+export const ESTILO_NIVEL_ESTOQUE = {
+  esgotado: {
+    label: "Esgotado",
+    cor: "#8A2118",
+    fundo: "#FBE3E0",
+    borda: "#EC9A90",
+    barra: "#C43F2F",
+  },
+  critico: {
+    label: "Repor já",
+    cor: "#A32A1C",
+    fundo: "#FDF3F2",
+    borda: "#F6C4BE",
+    barra: "#DC6557",
+  },
+  atencao: {
+    label: "Atenção",
+    cor: "#A16207",
+    fundo: "#FEFBEB",
+    borda: "#F5D97A",
+    barra: "#EAB308",
+  },
+  saudavel: {
+    label: "Em dia",
+    cor: "#15803D",
+    fundo: "#F0FDF4",
+    borda: "#9DE0B4",
+    barra: "#16A34A",
+  },
+} as const;
+
+export const ESTILO_CATEGORIA_PRODUTO: Record<
+  CategoriaProduto,
+  { cor: string; fundo: string; borda: string }
+> = {
+  Bebidas: { cor: "#0369A1", fundo: "#F0FAFF", borda: "#A5DFF7" },
+  Cervejas: { cor: "#A16207", fundo: "#FEFBEB", borda: "#F5D97A" },
+  Lanches: { cor: "#C2410C", fundo: "#FFF6ED", borda: "#FBBF8F" },
+  Acessórios: { cor: "#6D28D9", fundo: "#F7F3FF", borda: "#CBB4F8" },
+};
+
+export const ESTILO_MOVIMENTO: Record<
+  TipoMovimento,
+  { label: string; sinal: string; cor: string; fundo: string }
+> = {
+  entrada: { label: "Entrada", sinal: "+", cor: "#15803D", fundo: "#F0FDF4" },
+  venda: { label: "Venda", sinal: "−", cor: "#0369A1", fundo: "#F0FAFF" },
+  perda: { label: "Perda", sinal: "−", cor: "#8A2118", fundo: "#FBE3E0" },
+  ajuste: { label: "Ajuste", sinal: "±", cor: "#6B6255", fundo: "#F4F1EC" },
+};

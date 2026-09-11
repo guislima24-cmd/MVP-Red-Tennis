@@ -105,3 +105,67 @@ As telas internas rodam sob demanda (`export const dynamic = "force-dynamic"` em
 - O fluxo de caixa distingue "recebido" de "previsto" por **cor e hachura**, e
   oferece os mesmos dados em tabela.
 - Nenhuma fonte externa é carregada: o projeto roda offline.
+
+## Estoque e consumo
+
+Módulo acrescentado depois da primeira rodada de validação com o cliente.
+
+| Tipo | Descrição | Observações |
+| --- | --- | --- |
+| `Produto` | Item vendido no balcão | `quantidade` é o saldo; `estoqueMinimo` dispara o alerta de reposição |
+| `MovimentoEstoque` | Entrada, venda, perda ou ajuste | `quantidade` é sempre positiva — o `tipo` diz se soma ou subtrai |
+| `Consumo` | Item lançado na conta de uma pessoa | Serve para aluno **e** professor (`tipoPessoa`) |
+
+Pontos de atenção para a implementação real:
+
+1. **Lançar consumo é uma operação composta.** No MVP, `registrarConsumo`
+   (em `AppStore.tsx`) cria o consumo, gera o movimento de venda e abate o saldo
+   do produto na mesma ação. No backend isso precisa ser uma transação — não
+   pode existir consumo sem baixa, nem baixa sem consumo.
+
+2. **`Consumo` guarda `produtoNome` e `valorUnitario`.** É uma cópia proposital
+   do estado no momento da venda: mudar o preço ou o nome do produto no cadastro
+   não pode reescrever o histórico de quem já consumiu.
+
+3. **O saldo é derivado, mas guardado.** `Produto.quantidade` é o saldo materializado;
+   `MovimentoEstoque` é o razão. Vale decidir cedo qual dos dois é a fonte da
+   verdade — o ideal é o razão, com o saldo como cache recalculável.
+
+4. **O consumo em aberto ainda não entra no Financeiro.** Hoje ele aparece só na
+   ficha da pessoa. O caminho natural é virar um `Pagamento` no fechamento da conta.
+
+### Novos seletores
+
+| Seletor | Endpoint sugerido |
+| --- | --- |
+| `filtrarProdutos(filtro)` / `nivelDoEstoque(produto)` | `GET /produtos?categoria&busca&alerta` |
+| `resumoEstoque()` | `GET /estoque/resumo` |
+| `maisVendidos(n)` | `GET /estoque/mais-vendidos?dias=` |
+| `listarMovimentos()` | `GET /estoque/movimentos` |
+| `consumosDaPessoa(id)` / `resumoConsumo(id)` | `GET /pessoas/:id/consumos` |
+| `agendaDoProfessor(nome)` | `GET /professores/:id/agenda` |
+| `quadrasLivres(dia, inicio, fim)` | `GET /agenda/disponibilidade` |
+
+### Novas escritas
+
+| Ação na UI | Endpoint sugerido |
+| --- | --- |
+| Criar horário na agenda | `POST /horarios` |
+| Lançar consumo | `POST /pessoas/:id/consumos` |
+| Registrar entrada de estoque | `POST /estoque/movimentos` (tipo `entrada`) |
+| Registrar perda | `POST /estoque/movimentos` (tipo `perda`) |
+
+## Grade de horários com fonte injetável
+
+As funções de agenda em `selectors.ts` recebem um último parâmetro opcional
+`fonte: Horario[]`, que por padrão é a grade do mock. A UI passa a grade do
+store (`useApp().horarios`), que inclui os horários criados durante a sessão.
+Com API real, esse parâmetro deixa de ser necessário — a função passa a buscar
+do servidor — mas a separação entre "dados" e "regra de leitura" continua valendo.
+
+## Pisos das quadras
+
+`PISO_DAS_QUADRAS` em `mock-data.ts` define qual área é de saibro e qual é de
+cimento (hoje, a quadra 1). O componente `Quadra3D` usa esse dado para escolher
+a escala de cor. No backend isso vira um atributo da entidade quadra, junto com
+outras características que a arena já diferencia (cobertura, iluminação).

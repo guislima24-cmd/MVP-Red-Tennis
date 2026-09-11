@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { IconeAlerta } from "@/components/ui/Icons";
 import { ESTILO_TIPO, rotuloQuadraCurto } from "@/lib/theme";
-import { nomeCompacto, nomeDoAluno } from "@/lib/selectors";
+import { buscarProfessorPorNome, nomeCompacto, nomeDoAluno } from "@/lib/selectors";
 import type { Horario } from "@/lib/types";
 
 interface EventoChipProps {
@@ -30,6 +30,9 @@ export function EventoChip({
 }: EventoChipProps) {
   const estilo = ESTILO_TIPO[horario.tipo];
   const semProfessor = horario.professor === "Sem professor";
+  const professor = semProfessor
+    ? undefined
+    : buscarProfessorPorNome(horario.professor);
 
   const nomes = horario.alunosIds.map((id) => ({ id, nome: nomeDoAluno(id) }));
   const visiveis = compacto
@@ -94,13 +97,18 @@ export function EventoChip({
         )}
       </ul>
 
-      <p
-        className={`mt-0.5 truncate text-[10px] ${
-          semProfessor ? "italic text-areia-500" : "text-areia-600"
-        }`}
-      >
-        {horario.professor}
-      </p>
+      {professor ? (
+        <Link
+          href={`/professores/${professor.id}`}
+          className="mt-0.5 block truncate text-[10px] text-areia-600 underline-offset-2 hover:underline"
+        >
+          {horario.professor}
+        </Link>
+      ) : (
+        <p className="mt-0.5 truncate text-[10px] italic text-areia-500">
+          {horario.professor}
+        </p>
+      )}
     </article>
   );
 }

@@ -8,18 +8,40 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ALUNOS, USUARIOS } from "@/lib/mock-data";
-import type { Aluno, Comentario } from "@/lib/types";
+import {
+  ALUNOS,
+  CONSUMOS,
+  HORARIOS,
+  MOVIMENTOS_ESTOQUE,
+  PRODUTOS,
+  USUARIOS,
+} from "@/lib/mock-data";
+import { marcarConflitos } from "@/lib/selectors";
+import type {
+  Aluno,
+  Comentario,
+  Consumo,
+  Horario,
+  MovimentoEstoque,
+  Produto,
+  TipoPessoa,
+} from "@/lib/types";
 
 /**
  * Estado da aplicacao — vive apenas em memoria (React state).
  *
  * O MVP nao tem backend nem persistencia: o que o usuario altera durante a
- * demonstracao (novo comentario na ficha, congelar/descongelar um plano,
- * usuario logado) vale enquanto a aba estiver aberta e volta ao estado inicial
- * a cada reload. Quando houver API, este provider e o ponto natural para
- * substituir os `useState` por chamadas reais.
+ * demonstracao (novo horario na agenda, comentario na ficha, consumo lancado
+ * no balcao, entrada de estoque, congelamento de plano) vale enquanto a aba
+ * estiver aberta e volta ao estado inicial a cada reload.
+ *
+ * Quando houver API, este provider e o ponto natural para substituir os
+ * `useState` por chamadas reais.
  */
+
+/** Dados que o formulario de novo horario entrega. */
+export type NovoHorario = Omit<Horario, "id" | "temConflito">;
+
 interface AppStore {
   usuario: (typeof USUARIOS)[number];
   entrar: (usuarioId: string) => void;
@@ -28,12 +50,46 @@ interface AppStore {
   /** Aluno com as alteracoes feitas na sessao ja aplicadas. */
   obterAluno: (id: string) => Aluno | undefined;
   alunos: Aluno[];
-
   adicionarComentario: (alunoId: string, texto: string) => void;
   alternarCongelamento: (alunoId: string) => void;
+
+  /** Grade semanal incluindo os horarios criados durante a sessao. */
+  horarios: Horario[];
+  adicionarHorario: (dados: NovoHorario) => Horario;
+  removerHorario: (id: string) => void;
+
+  /** Estoque com os ajustes feitos na sessao ja aplicados. */
+  produtos: Produto[];
+  consumos: Consumo[];
+  movimentos: MovimentoEstoque[];
+  registrarConsumo: (
+    pessoaId: string,
+    tipoPessoa: TipoPessoa,
+    produtoId: string,
+    quantidade: number,
+  ) => void;
+  registrarEntrada: (
+    produtoId: string,
+    quantidade: number,
+    observacao?: string,
+  ) => void;
+  registrarPerda: (
+    produtoId: string,
+    quantidade: number,
+    observacao?: string,
+  ) => void;
 }
 
 const Contexto = createContext<AppStore | null>(null);
+
+/** Carimbo de data/hora local no formato usado pelos mocks. */
+function agoraISO(): string {
+  const agora = new Date();
+  const dois = (n: number) => String(n).padStart(2, "0");
+  return `${agora.getFullYear()}-${dois(agora.getMonth() + 1)}-${dois(
+    agora.getDate(),
+  )}T${dois(agora.getHours())}:${dois(agora.getMinutes())}`;
+}
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [usuarioId, setUsuarioId] = useState(USUARIOS[0].id);
@@ -42,6 +98,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   >({});
   const [congelamentos, setCongelamentos] = useState<Record<string, boolean>>(
     {},
+  );
+  const [horariosExtras, setHorariosExtras] = useState<Horario[]>([]);
+  const [horariosRemovidos, setHorariosRemovidos] = useState<string[]>([]);
+  /** Delta aplicado ao saldo de cada produto durante a sessao. */
+  const [ajustesEstoque, setAjustesEstoque] = useState<Record<string, number>>(
+    {},
+  );
+  const [consumosExtras, setConsumosExtras] = useState<Consumo[]>([]);
+  const [movimentosExtras, setMovimentosExtras] = useState<MovimentoEstoque[]>(
+    [],
   );
 
   const usuario = useMemo(
@@ -52,6 +118,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const entrar = useCallback((id: string) => setUsuarioId(id), []);
   const sair = useCallback(() => setUsuarioId(USUARIOS[0].id), []);
 
+  // --- Agenda ---------------------------------------------------------------
+  const horarios = useMemo(() => {
+    const base = HORARIOS.filter((h) => !horariosRemovidos.includes(h.id));
+    if (horariosExtras.length === 0 && horariosRemovidos.length === 0) {
+      return HORARIOS;
+    }
+    return marcarConflitos([...base, ...horariosExtras]);
+  }, [horariosExtras, horariosRemovidos]);
+
+  const adicionarHorario = useCallback((dados: NovoHorario) => {
+    const novo: Horario = {
+      ...dados,
+      id: `h-novo-${Date.now()}-${Math.round(Math.random() * 1000)}`,
+    };
+    setHorariosExtras((atual) => [...atual, novo]);
+    return novo;
+  }, []);
+
+  const removerHorario = useCallback((id: string) => {
+    setHorariosExtras((atual) => atual.filter((h) => h.id !== id));
+    setHorariosRemovidos((atual) =>
+      atual.includes(id) ? atual : [...atual, id],
+    );
+  }, []);
+
+  // --- Alunos ---------------------------------------------------------------
   const alunos = useMemo(
     () =>
       ALUNOS.map((aluno) => {
@@ -69,7 +161,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
               : congelado === false
                 ? undefined
                 : aluno.motivoCongelamento,
-          comentarios: extras ? [...extras, ...aluno.comentarios] : aluno.comentarios,
+          comentarios: extras
+            ? [...extras, ...aluno.comentarios]
+            : aluno.comentarios,
         };
       }),
     [comentariosExtras, congelamentos],
@@ -85,14 +179,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const limpo = texto.trim();
       if (!limpo) return;
 
-      const agora = new Date();
       const novo: Comentario = {
-        id: `c-novo-${alunoId}-${agora.getTime()}`,
-        data: `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(
-          agora.getDate(),
-        ).padStart(2, "0")}T${String(agora.getHours()).padStart(2, "0")}:${String(
-          agora.getMinutes(),
-        ).padStart(2, "0")}`,
+        id: `c-novo-${alunoId}-${Date.now()}`,
+        data: agoraISO(),
         autor: usuario.nome,
         texto: limpo,
       };
@@ -113,6 +202,124 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // --- Estoque e consumo ----------------------------------------------------
+  const produtos = useMemo(() => {
+    if (Object.keys(ajustesEstoque).length === 0) return PRODUTOS;
+    return PRODUTOS.map((produto) => {
+      const delta = ajustesEstoque[produto.id];
+      if (!delta) return produto;
+      return {
+        ...produto,
+        quantidade: Math.max(0, produto.quantidade + delta),
+      };
+    });
+  }, [ajustesEstoque]);
+
+  const consumos = useMemo(
+    () =>
+      consumosExtras.length === 0 ? CONSUMOS : [...consumosExtras, ...CONSUMOS],
+    [consumosExtras],
+  );
+
+  const movimentos = useMemo(
+    () =>
+      movimentosExtras.length === 0
+        ? MOVIMENTOS_ESTOQUE
+        : [...movimentosExtras, ...MOVIMENTOS_ESTOQUE],
+    [movimentosExtras],
+  );
+
+  const lancarMovimento = useCallback(
+    (movimento: Omit<MovimentoEstoque, "id" | "data" | "responsavel">) => {
+      setMovimentosExtras((atual) => [
+        {
+          ...movimento,
+          id: `mv-novo-${Date.now()}-${Math.round(Math.random() * 1000)}`,
+          data: agoraISO(),
+          responsavel: usuario.nome,
+        },
+        ...atual,
+      ]);
+    },
+    [usuario.nome],
+  );
+
+  const ajustar = useCallback((produtoId: string, delta: number) => {
+    setAjustesEstoque((atual) => ({
+      ...atual,
+      [produtoId]: (atual[produtoId] ?? 0) + delta,
+    }));
+  }, []);
+
+  /**
+   * Lanca consumo na conta da pessoa e da baixa no estoque na mesma acao —
+   * e esse encadeamento que o cliente pediu: quem pega uma água no balcão
+   * some do estoque e aparece na ficha.
+   */
+  const registrarConsumo = useCallback(
+    (
+      pessoaId: string,
+      tipoPessoa: TipoPessoa,
+      produtoId: string,
+      quantidade: number,
+    ) => {
+      const produto = PRODUTOS.find((p) => p.id === produtoId);
+      if (!produto || quantidade <= 0) return;
+
+      setConsumosExtras((atual) => [
+        {
+          id: `cs-novo-${Date.now()}-${Math.round(Math.random() * 1000)}`,
+          pessoaId,
+          tipoPessoa,
+          data: agoraISO(),
+          produtoId,
+          produtoNome: produto.nome,
+          quantidade,
+          valorUnitario: produto.precoVenda,
+          status: "em aberto",
+        },
+        ...atual,
+      ]);
+
+      ajustar(produtoId, -quantidade);
+      lancarMovimento({
+        produtoId,
+        tipo: "venda",
+        quantidade,
+        observacao: "Consumo lançado na ficha",
+      });
+    },
+    [ajustar, lancarMovimento],
+  );
+
+  const registrarEntrada = useCallback(
+    (produtoId: string, quantidade: number, observacao?: string) => {
+      if (quantidade <= 0) return;
+      ajustar(produtoId, quantidade);
+      lancarMovimento({
+        produtoId,
+        tipo: "entrada",
+        quantidade,
+        observacao: observacao ?? "Reposição registrada no balcão",
+      });
+    },
+    [ajustar, lancarMovimento],
+  );
+
+  const registrarPerda = useCallback(
+    (produtoId: string, quantidade: number, observacao?: string) => {
+      if (quantidade <= 0) return;
+      ajustar(produtoId, -quantidade);
+      lancarMovimento({
+        produtoId,
+        tipo: "perda",
+        quantidade,
+        observacao: observacao ?? "Baixa por perda",
+      });
+    },
+    [ajustar, lancarMovimento],
+  );
+
   const valor = useMemo<AppStore>(
     () => ({
       usuario,
@@ -122,6 +329,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       obterAluno,
       adicionarComentario,
       alternarCongelamento,
+      horarios,
+      adicionarHorario,
+      removerHorario,
+      produtos,
+      consumos,
+      movimentos,
+      registrarConsumo,
+      registrarEntrada,
+      registrarPerda,
     }),
     [
       usuario,
@@ -131,6 +347,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       obterAluno,
       adicionarComentario,
       alternarCongelamento,
+      horarios,
+      adicionarHorario,
+      removerHorario,
+      produtos,
+      consumos,
+      movimentos,
+      registrarConsumo,
+      registrarEntrada,
+      registrarPerda,
     ],
   );
 

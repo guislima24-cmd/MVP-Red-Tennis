@@ -3,19 +3,30 @@
 import { EventoChip } from "./EventoChip";
 import { DIAS_SEMANA_CURTO, ORDEM_SEMANA, diaDaSemana, formatarDiaMes } from "@/lib/date";
 import { FAIXAS_HORARIAS, HOJE } from "@/lib/mock-data";
+import { IconeMais } from "@/components/ui/Icons";
 import { choveuEm, horariosNaFaixaData, type FiltroAgenda } from "@/lib/selectors";
+import type { Horario } from "@/lib/types";
 
 interface VisaoSemanalProps {
   /** Datas (segunda a domingo) da semana exibida. */
   datas: string[];
   filtro: FiltroAgenda;
+  /** Grade em vigor, incluindo horários criados na sessão. */
+  horarios: Horario[];
+  /** Clique numa célula livre — abre o formulário já preenchido. */
+  aoAdicionar?: (diaSemana: number, faixa: string) => void;
 }
 
 /**
  * Grade semanal no estilo Google Calendar: dias da semana x faixas de 1h,
  * cobrindo o funcionamento da arena (07h as 22h).
  */
-export function VisaoSemanal({ datas, filtro }: VisaoSemanalProps) {
+export function VisaoSemanal({
+  datas,
+  filtro,
+  horarios,
+  aoAdicionar,
+}: VisaoSemanalProps) {
   const umaQuadra = filtro.quadra !== undefined && filtro.quadra !== "todas";
 
   return (
@@ -86,7 +97,7 @@ export function VisaoSemanal({ datas, filtro }: VisaoSemanalProps) {
                 const ehHoje = data === HOJE;
                 const passado = data < HOJE;
                 const chuva = choveuEm(data);
-                const eventos = horariosNaFaixaData(data, faixa, filtro);
+                const eventos = horariosNaFaixaData(data, faixa, filtro, horarios);
 
                 return (
                   <div
@@ -101,7 +112,7 @@ export function VisaoSemanal({ datas, filtro }: VisaoSemanalProps) {
                             : ""
                     }`}
                   >
-                    <div className="flex flex-col gap-1">
+                    <div className="group/celula flex h-full flex-col gap-1">
                       {eventos.map((horario) => (
                         <EventoChip
                           key={horario.id}
@@ -110,6 +121,19 @@ export function VisaoSemanal({ datas, filtro }: VisaoSemanalProps) {
                           passado={passado}
                         />
                       ))}
+
+                      {/* Atalho para criar um horário direto na célula */}
+                      {aoAdicionar && !chuva && (
+                        <button
+                          type="button"
+                          onClick={() => aoAdicionar(dia, faixa)}
+                          className="flex min-h-[22px] flex-1 items-center justify-center rounded-lg border border-dashed border-transparent text-areia-400 opacity-0 transition-all hover:border-saibro-300 hover:bg-saibro-50/60 hover:text-saibro-600 focus-visible:opacity-100 group-hover/celula:opacity-100"
+                          aria-label={`Adicionar horário · ${DIAS_SEMANA_CURTO[dia]} ${faixa}`}
+                          title="Adicionar horário"
+                        >
+                          <IconeMais className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

@@ -21,10 +21,10 @@ export default function LayoutApp({
   return (
     <div className="fundo-arena min-h-screen">
       <Topbar />
-      <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8">
+      <main className="w-full px-4 py-6 sm:px-6 sm:py-8 2xl:px-10">
         {children}
       </main>
-      <footer className="mx-auto max-w-[1600px] px-4 pb-8 pt-2 text-center text-xs text-areia-500 sm:px-6">
+      <footer className="w-full px-4 pb-8 pt-2 text-center text-xs text-areia-500 sm:px-6">
         MVP desenvolvido pela UFABC Júnior · dados fictícios para demonstração
       </footer>
     </div>

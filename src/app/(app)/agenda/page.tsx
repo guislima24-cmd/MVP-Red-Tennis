@@ -3,6 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Legenda } from "@/components/agenda/Legenda";
+import { ModalNovoHorario } from "@/components/agenda/ModalNovoHorario";
 import { VisaoMensal } from "@/components/agenda/VisaoMensal";
 import { VisaoSemanal } from "@/components/agenda/VisaoSemanal";
 import { Card } from "@/components/ui/Card";
@@ -12,9 +13,11 @@ import {
   IconeAlerta,
   IconeAnterior,
   IconeFiltro,
+  IconeMais,
   IconeProximo,
 } from "@/components/ui/Icons";
 import {
+  DIAS_SEMANA_LONGO,
   datasDaSemana,
   formatarDiaMes,
   formatarMesAno,
@@ -30,6 +33,7 @@ import {
 } from "@/lib/selectors";
 import { ORDEM_TIPOS, rotuloQuadra } from "@/lib/theme";
 import type { Quadra, TipoAlocacao } from "@/lib/types";
+import { useApp } from "@/store/AppStore";
 
 export default function PaginaAgenda() {
   return (
@@ -42,14 +46,26 @@ export default function PaginaAgenda() {
 function Agenda() {
   const parametros = useSearchParams();
   const quadraDaUrl = parametros.get("quadra");
+  const professorDaUrl = parametros.get("professor");
+  const { horarios } = useApp();
 
   const [visao, setVisao] = useState<"semana" | "mes">("semana");
   const [referencia, setReferencia] = useState(HOJE);
   const [quadra, setQuadra] = useState<Quadra | "todas">(() =>
     normalizarQuadra(quadraDaUrl),
   );
-  const [professor, setProfessor] = useState<string>("todos");
+  const [professor, setProfessor] = useState<string>(professorDaUrl ?? "todos");
   const [tipo, setTipo] = useState<TipoAlocacao | "todos">("todos");
+
+  // Formulário de novo horário: `preenchimento` guarda o que veio do clique
+  // numa célula livre da grade.
+  const [formularioAberto, setFormularioAberto] = useState(false);
+  const [preenchimento, setPreenchimento] = useState<{
+    quadra?: Quadra;
+    diaSemana?: number;
+    horaInicio?: string;
+  }>({});
+  const [ultimoCriado, setUltimoCriado] = useState<string | null>(null);
 
   const filtro: FiltroAgenda = useMemo(
     () => ({ quadra, professor, tipo }),
@@ -57,9 +73,18 @@ function Agenda() {
   );
 
   const datas = useMemo(() => datasDaSemana(referencia), [referencia]);
-  const total = listarHorarios(filtro).length;
-  const conflitos = contarConflitos(filtro);
+  const total = listarHorarios(filtro, horarios).length;
+  const conflitos = contarConflitos(filtro, horarios);
   const professores = listarProfessores();
+
+  function abrirFormulario(inicial: {
+    quadra?: Quadra;
+    diaSemana?: number;
+    horaInicio?: string;
+  }) {
+    setPreenchimento(inicial);
+    setFormularioAberto(true);
+  }
 
   function navegar(direcao: -1 | 1) {
     setReferencia((atual) =>
@@ -125,8 +150,35 @@ function Agenda() {
               { valor: "mes", rotulo: "Mês" },
             ]}
           />
+
+          <button
+            type="button"
+            onClick={() =>
+              abrirFormulario({
+                quadra: quadra === "todas" ? undefined : quadra,
+              })
+            }
+            className="btn-primario py-2"
+          >
+            <IconeMais className="h-4 w-4" />
+            Novo horário
+          </button>
         </div>
       </div>
+
+      {/* Confirmação do último horário criado na sessão */}
+      {ultimoCriado && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-3">
+          <p className="text-sm text-emerald-800">{ultimoCriado}</p>
+          <button
+            type="button"
+            onClick={() => setUltimoCriado(null)}
+            className="text-xs font-semibold text-emerald-700 hover:underline"
+          >
+            Fechar
+          </button>
+        </div>
+      )}
 
       {/* Alerta de conflitos */}
       {conflitos > 0 && (
@@ -210,11 +262,23 @@ function Agenda() {
         </div>
 
         {visao === "semana" ? (
-          <VisaoSemanal datas={datas} filtro={filtro} />
+          <VisaoSemanal
+            datas={datas}
+            filtro={filtro}
+            horarios={horarios}
+            aoAdicionar={(diaSemana, horaInicio) =>
+              abrirFormulario({
+                quadra: quadra === "todas" ? undefined : quadra,
+                diaSemana,
+                horaInicio,
+              })
+            }
+          />
         ) : (
           <VisaoMensal
             referencia={referencia}
             filtro={filtro}
+            horarios={horarios}
             aoSelecionarDia={(data) => {
               setReferencia(data);
               setVisao("semana");
@@ -225,8 +289,23 @@ function Agenda() {
 
       <p className="flex items-center gap-2 text-xs text-areia-500">
         <IconeAgenda className="h-4 w-4" />
-        Clique no nome de um aluno para abrir a ficha completa.
+        Clique no nome de um aluno para abrir a ficha completa, ou em um espaço
+        livre da grade para marcar um novo horário.
       </p>
+
+      <ModalNovoHorario
+        key={`${preenchimento.quadra}-${preenchimento.diaSemana}-${preenchimento.horaInicio}-${formularioAberto}`}
+        aberto={formularioAberto}
+        aoFechar={() => setFormularioAberto(false)}
+        horarios={horarios}
+        inicial={preenchimento}
+        aoSalvar={(criado) => {
+          setUltimoCriado(
+            `Horário criado: ${rotuloQuadra(criado.quadra)} · ${DIAS_SEMANA_LONGO[criado.diaSemana]} · ${criado.horaInicio}–${criado.horaFim} · ${criado.tipo}.`,
+          );
+          setVisao("semana");
+        }}
+      />
     </div>
   );
 }

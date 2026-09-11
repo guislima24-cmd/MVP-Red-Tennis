@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "./Logo";
 import {
   IconeAgenda,
+  IconeEstoque,
   IconeFinanceiro,
   IconeQuadras,
   IconeSair,
@@ -17,6 +18,7 @@ const ABAS = [
   { href: "/dashboard", rotulo: "Dashboard", Icone: IconeQuadras },
   { href: "/agenda", rotulo: "Agenda", Icone: IconeAgenda },
   { href: "/financeiro", rotulo: "Financeiro", Icone: IconeFinanceiro },
+  { href: "/estoque", rotulo: "Estoque", Icone: IconeEstoque },
   { href: "/ranking", rotulo: "Ranking / Torneio", Icone: IconeTrofeu },
 ];
 
@@ -33,7 +35,7 @@ export function Topbar() {
   return (
     <header className="sticky top-0 z-30 border-b border-areia-200 bg-white/95 backdrop-blur">
       {/* Faixa superior: marca, identificacao da arena e usuario logado */}
-      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 2xl:px-10">
         <Link href="/dashboard" className="flex items-center gap-3">
           <Logo variante="marca" className="h-8 w-auto" />
           <span className="hidden sm:block">
@@ -75,7 +77,7 @@ export function Topbar() {
       </div>
 
       {/* Abas de navegacao principal */}
-      <nav className="mx-auto max-w-[1600px] px-2 sm:px-4">
+      <nav className="w-full px-2 sm:px-4 2xl:px-8">
         <ul className="flex items-center gap-1 overflow-x-auto rolagem-suave">
           {ABAS.map(({ href, rotulo, Icone }) => {
             const ativo = pathname.startsWith(href);

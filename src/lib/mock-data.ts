@@ -23,13 +23,18 @@ import {
 } from "./date";
 import type {
   Aluno,
+  CategoriaProduto,
   CategoriaRanking,
+  Consumo,
+  MovimentoEstoque,
   FormaPagamento,
   Horario,
   HistoricoAula,
   MotivoFalta,
   Pagamento,
+  PisoQuadra,
   PlanoAluno,
+  Produto,
   Professor,
   Quadra,
   StatusAula,
@@ -51,9 +56,25 @@ export const FAIXAS_HORARIAS: string[] = Array.from(
 
 export const QUADRAS: Quadra[] = [1, 2, 3, 4, "paredao"];
 
+/**
+ * Piso de cada area.
+ * A quadra 1 e de cimento; as demais e o paredao sao de saibro.
+ */
+export const PISO_DAS_QUADRAS: Record<string, PisoQuadra> = {
+  "1": "cimento",
+  "2": "saibro",
+  "3": "saibro",
+  "4": "saibro",
+  paredao: "saibro",
+};
+
+export function pisoDaQuadra(quadra: Quadra): PisoQuadra {
+  return PISO_DAS_QUADRAS[String(quadra)] ?? "saibro";
+}
+
 export const ARENA = {
   nome: "Red Tennis",
-  endereco: "Arena de saibro · 4 quadras + paredão",
+  endereco: "3 quadras de saibro · 1 de cimento · paredão",
   horarioFuncionamento: "07h às 22h",
   gestor: "Francisco",
   equipe: "Lucas",
@@ -903,3 +924,172 @@ export const TORNEIOS: Torneio[] = [
     status: "encerrado",
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Estoque do balcao
+// ---------------------------------------------------------------------------
+interface ProdutoBase {
+  id: string;
+  nome: string;
+  categoria: CategoriaProduto;
+  unidade: string;
+  precoCusto: number;
+  precoVenda: number;
+  quantidade: number;
+  estoqueMinimo: number;
+}
+
+/**
+ * Catalogo vendido no balcao da arena.
+ * As quantidades sao propositalmente variadas: alguns itens aparecem zerados
+ * ou abaixo do minimo para demonstrar o alerta de reposicao.
+ */
+const PRODUTOS_BASE: ProdutoBase[] = [
+  { id: "p01", nome: "Água mineral sem gás", categoria: "Bebidas", unidade: "garrafa 500ml", precoCusto: 1.9, precoVenda: 5, quantidade: 96, estoqueMinimo: 40 },
+  { id: "p02", nome: "Água mineral com gás", categoria: "Bebidas", unidade: "garrafa 500ml", precoCusto: 2.2, precoVenda: 6, quantidade: 34, estoqueMinimo: 24 },
+  { id: "p03", nome: "Isotônico", categoria: "Bebidas", unidade: "garrafa 500ml", precoCusto: 4.5, precoVenda: 10, quantidade: 18, estoqueMinimo: 24 },
+  { id: "p04", nome: "Água de coco", categoria: "Bebidas", unidade: "caixa 200ml", precoCusto: 3.2, precoVenda: 8, quantidade: 41, estoqueMinimo: 20 },
+  { id: "p05", nome: "Refrigerante", categoria: "Bebidas", unidade: "lata 350ml", precoCusto: 2.8, precoVenda: 7, quantidade: 62, estoqueMinimo: 36 },
+  { id: "p06", nome: "Suco natural de laranja", categoria: "Bebidas", unidade: "copo 300ml", precoCusto: 3.5, precoVenda: 9, quantidade: 12, estoqueMinimo: 15 },
+  { id: "p07", nome: "Energético", categoria: "Bebidas", unidade: "lata 250ml", precoCusto: 5.4, precoVenda: 12, quantidade: 27, estoqueMinimo: 12 },
+  { id: "p08", nome: "Café expresso", categoria: "Bebidas", unidade: "dose", precoCusto: 1.2, precoVenda: 5, quantidade: 120, estoqueMinimo: 50 },
+
+  { id: "p09", nome: "Cerveja pilsen long neck", categoria: "Cervejas", unidade: "garrafa 330ml", precoCusto: 4.2, precoVenda: 11, quantidade: 78, estoqueMinimo: 48 },
+  { id: "p10", nome: "Cerveja puro malte", categoria: "Cervejas", unidade: "lata 350ml", precoCusto: 3.6, precoVenda: 9, quantidade: 54, estoqueMinimo: 48 },
+  { id: "p11", nome: "Cerveja IPA artesanal", categoria: "Cervejas", unidade: "garrafa 600ml", precoCusto: 9.5, precoVenda: 22, quantidade: 9, estoqueMinimo: 12 },
+  { id: "p12", nome: "Cerveja sem álcool", categoria: "Cervejas", unidade: "lata 350ml", precoCusto: 3.9, precoVenda: 10, quantidade: 0, estoqueMinimo: 12 },
+
+  { id: "p13", nome: "Salgadinho de pacote", categoria: "Lanches", unidade: "pacote 45g", precoCusto: 2.4, precoVenda: 7, quantidade: 44, estoqueMinimo: 20 },
+  { id: "p14", nome: "Amendoim torrado", categoria: "Lanches", unidade: "pacote 50g", precoCusto: 1.8, precoVenda: 6, quantidade: 31, estoqueMinimo: 15 },
+  { id: "p15", nome: "Barra de cereal", categoria: "Lanches", unidade: "unidade", precoCusto: 1.6, precoVenda: 5, quantidade: 7, estoqueMinimo: 20 },
+  { id: "p16", nome: "Biscoito de polvilho", categoria: "Lanches", unidade: "pacote 100g", precoCusto: 3.1, precoVenda: 8, quantidade: 22, estoqueMinimo: 12 },
+  { id: "p17", nome: "Sanduíche natural", categoria: "Lanches", unidade: "unidade", precoCusto: 6.5, precoVenda: 15, quantidade: 6, estoqueMinimo: 8 },
+  { id: "p18", nome: "Chocolate", categoria: "Lanches", unidade: "barra 90g", precoCusto: 4.2, precoVenda: 10, quantidade: 25, estoqueMinimo: 12 },
+
+  { id: "p19", nome: "Tubo de bolas", categoria: "Acessórios", unidade: "tubo com 3", precoCusto: 34, precoVenda: 65, quantidade: 23, estoqueMinimo: 15 },
+  { id: "p20", nome: "Overgrip", categoria: "Acessórios", unidade: "unidade", precoCusto: 9, precoVenda: 20, quantidade: 48, estoqueMinimo: 20 },
+  { id: "p21", nome: "Corda para raquete", categoria: "Acessórios", unidade: "jogo", precoCusto: 45, precoVenda: 95, quantidade: 11, estoqueMinimo: 8 },
+  { id: "p22", nome: "Munhequeira", categoria: "Acessórios", unidade: "par", precoCusto: 12, precoVenda: 28, quantidade: 4, estoqueMinimo: 10 },
+  { id: "p23", nome: "Antivibrador", categoria: "Acessórios", unidade: "unidade", precoCusto: 6, precoVenda: 15, quantidade: 30, estoqueMinimo: 10 },
+  { id: "p24", nome: "Viseira Red Tennis", categoria: "Acessórios", unidade: "unidade", precoCusto: 22, precoVenda: 55, quantidade: 14, estoqueMinimo: 6 },
+];
+
+export const CATEGORIAS_PRODUTO: CategoriaProduto[] = [
+  "Bebidas",
+  "Cervejas",
+  "Lanches",
+  "Acessórios",
+];
+
+export const PRODUTOS: Produto[] = PRODUTOS_BASE.map((produto, indice) => {
+  const rng = criarRng(8800 + indice * 13);
+  return {
+    ...produto,
+    ultimaEntrada: somarDias(HOJE, -inteiro(rng, 1, 26)),
+  };
+});
+
+// ---------------------------------------------------------------------------
+// Consumo lancado na conta de alunos e professores
+// ---------------------------------------------------------------------------
+/** Itens que realmente giram no balcao — acessorios saem bem menos. */
+const PRODUTOS_DE_BALCAO = PRODUTOS.filter(
+  (p) => p.categoria !== "Acessórios",
+);
+
+function gerarConsumos(): Consumo[] {
+  const rng = criarRng(55501);
+  const consumos: Consumo[] = [];
+
+  for (let diasAtras = 29; diasAtras >= 0; diasAtras -= 1) {
+    const data = somarDias(HOJE, -diasAtras);
+    if (DIAS_COM_CHUVA.includes(data)) continue; // arena fechada
+
+    // Com ~200 horarios por semana passando pela arena, o balcao gira algumas
+    // dezenas de itens por dia.
+    const lancamentos = inteiro(rng, 8, 18);
+
+    for (let i = 0; i < lancamentos; i += 1) {
+      // A maior parte do consumo e de alunos; professores tambem lancam.
+      const ehProfessor = rng() > 0.82;
+      const pessoa = ehProfessor
+        ? escolher(rng, PROFESSORES)
+        : escolher(rng, ALUNOS_BASE);
+      const produto = escolher(rng, PRODUTOS_DE_BALCAO);
+
+      consumos.push({
+        id: `cs-${diasAtras}-${i}`,
+        pessoaId: pessoa.id,
+        tipoPessoa: ehProfessor ? "professor" : "aluno",
+        data: `${data}T${String(inteiro(rng, 8, 21)).padStart(2, "0")}:${escolher(
+          rng,
+          ["04", "13", "27", "35", "48", "56"],
+        )}`,
+        produtoId: produto.id,
+        produtoNome: produto.nome,
+        quantidade: rng() > 0.78 ? 2 : 1,
+        valorUnitario: produto.precoVenda,
+        // Consumo dos ultimos dias costuma ficar em aberto ate o fechamento.
+        status: diasAtras <= 6 && rng() > 0.45 ? "em aberto" : "pago",
+      });
+    }
+  }
+
+  return consumos.sort((a, b) => (a.data < b.data ? 1 : -1));
+}
+
+export const CONSUMOS: Consumo[] = gerarConsumos();
+
+// ---------------------------------------------------------------------------
+// Movimentacao de estoque
+// ---------------------------------------------------------------------------
+const RESPONSAVEIS_ESTOQUE = ["Lucas Ferreira", "Francisco Menezes"];
+
+function gerarMovimentos(): MovimentoEstoque[] {
+  const rng = criarRng(6420);
+  const movimentos: MovimentoEstoque[] = [];
+
+  // Entradas de reposicao
+  PRODUTOS.forEach((produto, indice) => {
+    if (rng() > 0.55) return;
+    movimentos.push({
+      id: `mv-ent-${produto.id}`,
+      produtoId: produto.id,
+      data: `${produto.ultimaEntrada}T${String(inteiro(rng, 8, 17)).padStart(2, "0")}:${escolher(rng, ["10", "25", "40"])}`,
+      tipo: "entrada",
+      quantidade: inteiro(rng, 12, 60),
+      responsavel: RESPONSAVEIS_ESTOQUE[indice % 2],
+      observacao: "Reposição do fornecedor",
+    });
+  });
+
+  // Vendas derivadas do consumo lancado nas fichas
+  CONSUMOS.slice(0, 60).forEach((consumo) => {
+    movimentos.push({
+      id: `mv-vd-${consumo.id}`,
+      produtoId: consumo.produtoId,
+      data: consumo.data,
+      tipo: "venda",
+      quantidade: consumo.quantidade,
+      responsavel: "Balcão",
+      observacao: `Consumo lançado na ficha`,
+    });
+  });
+
+  // Algumas perdas pontuais
+  ["p11", "p17", "p06"].forEach((produtoId, i) => {
+    movimentos.push({
+      id: `mv-pd-${produtoId}`,
+      produtoId,
+      data: `${somarDias(HOJE, -(3 + i * 5))}T16:${20 + i}`,
+      tipo: "perda",
+      quantidade: inteiro(rng, 1, 3),
+      responsavel: RESPONSAVEIS_ESTOQUE[i % 2],
+      observacao: i === 0 ? "Garrafa quebrada" : "Vencimento",
+    });
+  });
+
+  return movimentos.sort((a, b) => (a.data < b.data ? 1 : -1));
+}
+
+export const MOVIMENTOS_ESTOQUE: MovimentoEstoque[] = gerarMovimentos();

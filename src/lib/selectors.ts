@@ -11,6 +11,7 @@
 
 import {
   ALUNOS,
+  CONSUMOS,
   DIAS_COM_CHUVA,
   IDS_INSCRITOS_RANKING,
   LINHAS_PIRAMIDE,
@@ -19,17 +20,25 @@ import {
   HORARIOS,
   MENSALIDADE_POR_ALUNO,
   PAGAMENTOS,
+  MOVIMENTOS_ESTOQUE,
+  PRODUTOS,
   PROFESSORES,
   QUADRAS,
   SEM_PROFESSOR,
+  pisoDaQuadra,
 } from "./mock-data";
 import { diaDaSemana, diferencaEmDias, horaParaMinutos, somarDias } from "./date";
 import type {
   Aluno,
+  CategoriaProduto,
   CategoriaRanking,
+  Consumo,
+  MovimentoEstoque,
   FormaPagamento,
   Horario,
   Pagamento,
+  PisoQuadra,
+  Produto,
   Professor,
   Quadra,
   TipoAlocacao,
@@ -77,10 +86,13 @@ export interface FiltroAgenda {
   tipo?: TipoAlocacao | "todos";
 }
 
-export function listarHorarios(filtro: FiltroAgenda = {}): Horario[] {
+export function listarHorarios(
+  filtro: FiltroAgenda = {},
+  fonte: Horario[] = HORARIOS,
+): Horario[] {
   const { quadra = "todas", professor = "todos", tipo = "todos" } = filtro;
 
-  return HORARIOS.filter((h) => {
+  return fonte.filter((h) => {
     if (quadra !== "todas" && h.quadra !== quadra) return false;
     if (professor !== "todos" && h.professor !== professor) return false;
     if (tipo !== "todos" && h.tipo !== tipo) return false;
@@ -92,8 +104,9 @@ export function listarHorarios(filtro: FiltroAgenda = {}): Horario[] {
 export function horariosDoDia(
   diaSemana: number,
   filtro: FiltroAgenda = {},
+  fonte: Horario[] = HORARIOS,
 ): Horario[] {
-  return listarHorarios(filtro)
+  return listarHorarios(filtro, fonte)
     .filter((h) => h.diaSemana === diaSemana)
     .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
 }
@@ -103,8 +116,9 @@ export function horariosNaFaixa(
   diaSemana: number,
   faixa: string,
   filtro: FiltroAgenda = {},
+  fonte: Horario[] = HORARIOS,
 ): Horario[] {
-  return horariosDoDia(diaSemana, filtro)
+  return horariosDoDia(diaSemana, filtro, fonte)
     .filter((h) => h.horaInicio === faixa)
     .sort((a, b) => String(a.quadra).localeCompare(String(b.quadra)));
 }
@@ -122,9 +136,10 @@ export function choveuEm(data: string): boolean {
 export function horariosDaData(
   data: string,
   filtro: FiltroAgenda = {},
+  fonte: Horario[] = HORARIOS,
 ): Horario[] {
   if (choveuEm(data)) return [];
-  return horariosDoDia(diaDaSemana(data), filtro);
+  return horariosDoDia(diaDaSemana(data), filtro, fonte);
 }
 
 /** Horarios de uma data real que comecam na faixa informada. */
@@ -132,13 +147,17 @@ export function horariosNaFaixaData(
   data: string,
   faixa: string,
   filtro: FiltroAgenda = {},
+  fonte: Horario[] = HORARIOS,
 ): Horario[] {
   if (choveuEm(data)) return [];
-  return horariosNaFaixa(diaDaSemana(data), faixa, filtro);
+  return horariosNaFaixa(diaDaSemana(data), faixa, filtro, fonte);
 }
 
-export function contarConflitos(filtro: FiltroAgenda = {}): number {
-  return listarHorarios(filtro).filter((h) => h.temConflito).length;
+export function contarConflitos(
+  filtro: FiltroAgenda = {},
+  fonte: Horario[] = HORARIOS,
+): number {
+  return listarHorarios(filtro, fonte).filter((h) => h.temConflito).length;
 }
 
 /** Duracao do horario em minutos. */
@@ -146,11 +165,50 @@ export function duracaoHorario(horario: Horario): number {
   return horaParaMinutos(horario.horaFim) - horaParaMinutos(horario.horaInicio);
 }
 
+/**
+ * Recalcula a marca de conflito de uma lista de horarios.
+ * Usado depois de incluir um horario novo durante a sessao — no backend, a
+ * regra deveria impedir a gravacao em vez de apenas sinalizar.
+ */
+export function marcarConflitos(lista: Horario[]): Horario[] {
+  return lista.map((h) => {
+    const colide = lista.some(
+      (outro) =>
+        outro.id !== h.id &&
+        outro.quadra === h.quadra &&
+        outro.diaSemana === h.diaSemana &&
+        outro.horaInicio < h.horaFim &&
+        h.horaInicio < outro.horaFim,
+    );
+    return colide === Boolean(h.temConflito) ? h : { ...h, temConflito: colide };
+  });
+}
+
+/** Quadras livres num dia/faixa — alimenta o formulario de novo horário. */
+export function quadrasLivres(
+  diaSemana: number,
+  horaInicio: string,
+  horaFim: string,
+  fonte: Horario[] = HORARIOS,
+): Quadra[] {
+  return QUADRAS.filter(
+    (quadra) =>
+      !fonte.some(
+        (h) =>
+          h.quadra === quadra &&
+          h.diaSemana === diaSemana &&
+          h.horaInicio < horaFim &&
+          horaInicio < h.horaFim,
+      ),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Ocupacao das quadras (Dashboard)
 // ---------------------------------------------------------------------------
 export interface OcupacaoQuadra {
   quadra: Quadra;
+  piso: PisoQuadra;
   /** Numero de horarios marcados no dia. */
   ocupados: number;
   /** Total de faixas disponiveis no dia (07h as 22h). */
@@ -168,17 +226,21 @@ export interface OcupacaoQuadra {
  * Ocupacao de cada quadra em um dia da semana.
  * `referencia` permite calcular a ocupacao de qualquer dia; por padrao, hoje.
  */
-export function ocupacaoDasQuadras(referencia: string = HOJE): OcupacaoQuadra[] {
+export function ocupacaoDasQuadras(
+  referencia: string = HOJE,
+  fonte: Horario[] = HORARIOS,
+): OcupacaoQuadra[] {
   const dia = diaDaSemana(referencia);
   const total = FAIXAS_HORARIAS.length;
 
   return QUADRAS.map((quadra) => {
-    const doDia = horariosDoDia(dia, { quadra });
+    const doDia = horariosDoDia(dia, { quadra }, fonte);
     const ocupadas = new Set(doDia.map((h) => h.horaInicio));
     const livre = FAIXAS_HORARIAS.find((f) => !ocupadas.has(f)) ?? null;
 
     return {
       quadra,
+      piso: pisoDaQuadra(quadra),
       ocupados: ocupadas.size,
       total,
       taxa: ocupadas.size / total,
@@ -197,10 +259,13 @@ export interface ResumoDoDia {
   quadraMaisCheia: Quadra;
 }
 
-export function resumoDoDia(referencia: string = HOJE): ResumoDoDia {
+export function resumoDoDia(
+  referencia: string = HOJE,
+  fonte: Horario[] = HORARIOS,
+): ResumoDoDia {
   const dia = diaDaSemana(referencia);
-  const doDia = horariosDoDia(dia);
-  const ocupacoes = ocupacaoDasQuadras(referencia);
+  const doDia = horariosDoDia(dia, {}, fonte);
+  const ocupacoes = ocupacaoDasQuadras(referencia, fonte);
   const maisCheia = [...ocupacoes].sort((a, b) => b.taxa - a.taxa)[0];
 
   return {
@@ -448,7 +513,10 @@ export interface ResumoAluno {
   proximoHorario: Horario | null;
 }
 
-export function resumoAluno(aluno: Aluno): ResumoAluno {
+export function resumoAluno(
+  aluno: Aluno,
+  fonte: Horario[] = HORARIOS,
+): ResumoAluno {
   const realizadas = aluno.historicoAulas.filter(
     (a) => a.status === "realizada",
   ).length;
@@ -457,9 +525,12 @@ export function resumoAluno(aluno: Aluno): ResumoAluno {
     (a) => a.status === "reagendada",
   ).length;
 
-  const proximos = HORARIOS.filter(
-    (h) => h.alunosIds.includes(aluno.id) && h.professor !== SEM_PROFESSOR,
-  ).sort((a, b) => a.diaSemana - b.diaSemana || a.horaInicio.localeCompare(b.horaInicio));
+  const proximos = fonte
+    .filter((h) => h.alunosIds.includes(aluno.id) && h.professor !== SEM_PROFESSOR)
+    .sort(
+      (a, b) =>
+        a.diaSemana - b.diaSemana || a.horaInicio.localeCompare(b.horaInicio),
+    );
 
   return {
     aulasRealizadas: realizadas,
@@ -481,8 +552,204 @@ export function resumoAluno(aluno: Aluno): ResumoAluno {
 }
 
 /** Horarios fixos do aluno na grade semanal. */
-export function horariosDoAluno(alunoId: string): Horario[] {
-  return HORARIOS.filter((h) => h.alunosIds.includes(alunoId)).sort(
+export function horariosDoAluno(
+  alunoId: string,
+  fonte: Horario[] = HORARIOS,
+): Horario[] {
+  return fonte.filter((h) => h.alunosIds.includes(alunoId)).sort(
     (a, b) => a.diaSemana - b.diaSemana || a.horaInicio.localeCompare(b.horaInicio),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Estoque
+// ---------------------------------------------------------------------------
+export function listarProdutos(fonte: Produto[] = PRODUTOS): Produto[] {
+  return fonte;
+}
+
+export function buscarProduto(
+  id: string,
+  fonte: Produto[] = PRODUTOS,
+): Produto | undefined {
+  return fonte.find((p) => p.id === id);
+}
+
+/** Situacao do saldo de um item, usada para colorir o cartao. */
+export type NivelEstoque = "esgotado" | "critico" | "atencao" | "saudavel";
+
+export function nivelDoEstoque(produto: Produto): NivelEstoque {
+  if (produto.quantidade === 0) return "esgotado";
+  if (produto.quantidade < produto.estoqueMinimo) return "critico";
+  if (produto.quantidade < produto.estoqueMinimo * 1.35) return "atencao";
+  return "saudavel";
+}
+
+export interface FiltroEstoque {
+  categoria?: CategoriaProduto | "todas";
+  busca?: string;
+  /** Mostra apenas o que precisa de reposicao. */
+  apenasAlerta?: boolean;
+}
+
+export function filtrarProdutos(
+  filtro: FiltroEstoque = {},
+  fonte: Produto[] = PRODUTOS,
+): Produto[] {
+  const { categoria = "todas", busca = "", apenasAlerta = false } = filtro;
+  const termo = busca.trim().toLowerCase();
+
+  return fonte.filter((produto) => {
+    if (categoria !== "todas" && produto.categoria !== categoria) return false;
+    if (termo && !produto.nome.toLowerCase().includes(termo)) return false;
+    if (apenasAlerta) {
+      const nivel = nivelDoEstoque(produto);
+      if (nivel !== "esgotado" && nivel !== "critico") return false;
+    }
+    return true;
+  });
+}
+
+export interface ResumoEstoque {
+  itensCadastrados: number;
+  unidadesEmEstoque: number;
+  valorDeCusto: number;
+  valorDeVenda: number;
+  precisamRepor: number;
+  esgotados: number;
+  vendasNoMes: number;
+  margemPotencial: number;
+}
+
+export function resumoEstoque(
+  fonte: Produto[] = PRODUTOS,
+  consumos: Consumo[] = CONSUMOS,
+  referencia: string = HOJE,
+): ResumoEstoque {
+  const mes = referencia.slice(0, 7);
+  const doMes = consumos.filter((c) => c.data.slice(0, 7) === mes);
+
+  const valorDeCusto = fonte.reduce(
+    (s, p) => s + p.precoCusto * p.quantidade,
+    0,
+  );
+  const valorDeVenda = fonte.reduce(
+    (s, p) => s + p.precoVenda * p.quantidade,
+    0,
+  );
+
+  return {
+    itensCadastrados: fonte.length,
+    unidadesEmEstoque: fonte.reduce((s, p) => s + p.quantidade, 0),
+    valorDeCusto,
+    valorDeVenda,
+    precisamRepor: fonte.filter((p) => {
+      const nivel = nivelDoEstoque(p);
+      return nivel === "critico" || nivel === "esgotado";
+    }).length,
+    esgotados: fonte.filter((p) => p.quantidade === 0).length,
+    vendasNoMes: doMes.reduce((s, c) => s + c.valorUnitario * c.quantidade, 0),
+    margemPotencial: valorDeVenda - valorDeCusto,
+  };
+}
+
+export function listarMovimentos(
+  fonte: MovimentoEstoque[] = MOVIMENTOS_ESTOQUE,
+): MovimentoEstoque[] {
+  return fonte;
+}
+
+/** Itens mais vendidos no periodo — orienta a reposicao. */
+export function maisVendidos(
+  quantidade = 5,
+  consumos: Consumo[] = CONSUMOS,
+): Array<{ produtoId: string; nome: string; unidades: number; total: number }> {
+  const mapa = new Map<string, { nome: string; unidades: number; total: number }>();
+
+  consumos.forEach((c) => {
+    const atual = mapa.get(c.produtoId) ?? {
+      nome: c.produtoNome,
+      unidades: 0,
+      total: 0,
+    };
+    atual.unidades += c.quantidade;
+    atual.total += c.quantidade * c.valorUnitario;
+    mapa.set(c.produtoId, atual);
+  });
+
+  return [...mapa.entries()]
+    .map(([produtoId, dados]) => ({ produtoId, ...dados }))
+    .sort((a, b) => b.unidades - a.unidades)
+    .slice(0, quantidade);
+}
+
+// ---------------------------------------------------------------------------
+// Consumo (ficha do aluno e do professor)
+// ---------------------------------------------------------------------------
+export function consumosDaPessoa(
+  pessoaId: string,
+  fonte: Consumo[] = CONSUMOS,
+): Consumo[] {
+  return fonte
+    .filter((c) => c.pessoaId === pessoaId)
+    .sort((a, b) => (a.data < b.data ? 1 : -1));
+}
+
+export interface ResumoConsumo {
+  lancamentos: number;
+  totalEmAberto: number;
+  totalPago: number;
+  ultimoConsumo: Consumo | null;
+}
+
+export function resumoConsumo(
+  pessoaId: string,
+  fonte: Consumo[] = CONSUMOS,
+): ResumoConsumo {
+  const lista = consumosDaPessoa(pessoaId, fonte);
+  const valor = (c: Consumo) => c.valorUnitario * c.quantidade;
+
+  return {
+    lancamentos: lista.length,
+    totalEmAberto: lista
+      .filter((c) => c.status === "em aberto")
+      .reduce((s, c) => s + valor(c), 0),
+    totalPago: lista
+      .filter((c) => c.status === "pago")
+      .reduce((s, c) => s + valor(c), 0),
+    ultimoConsumo: lista[0] ?? null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Professores (ficha individual)
+// ---------------------------------------------------------------------------
+export function buscarProfessor(id: string): Professor | undefined {
+  return PROFESSORES.find((p) => p.id === id);
+}
+
+export interface AgendaProfessor {
+  horarios: Horario[];
+  aulasSemana: number;
+  horasSemana: number;
+  alunosAtendidos: string[];
+}
+
+export function agendaDoProfessor(
+  nome: string,
+  fonte: Horario[] = HORARIOS,
+): AgendaProfessor {
+  const horarios = fonte
+    .filter((h) => h.professor === nome)
+    .sort(
+      (a, b) =>
+        a.diaSemana - b.diaSemana || a.horaInicio.localeCompare(b.horaInicio),
+    );
+
+  return {
+    horarios,
+    aulasSemana: horarios.length,
+    horasSemana: horarios.reduce((s, h) => s + duracaoHorario(h) / 60, 0),
+    alunosAtendidos: [...new Set(horarios.flatMap((h) => h.alunosIds))],
+  };
 }

@@ -3,12 +3,15 @@
 import { DIAS_SEMANA_CURTO, ORDEM_SEMANA, gradeDoMes, mesmoMes, paraData } from "@/lib/date";
 import { HOJE } from "@/lib/mock-data";
 import { choveuEm, horariosDaData, type FiltroAgenda } from "@/lib/selectors";
+import type { Horario } from "@/lib/types";
 import { ESTILO_TIPO, ORDEM_TIPOS } from "@/lib/theme";
 
 interface VisaoMensalProps {
   /** Qualquer data dentro do mes que sera exibido. */
   referencia: string;
   filtro: FiltroAgenda;
+  /** Grade em vigor, incluindo horários criados na sessão. */
+  horarios: Horario[];
   /** Abrir a semana correspondente ao clicar num dia. */
   aoSelecionarDia: (data: string) => void;
 }
@@ -21,6 +24,7 @@ interface VisaoMensalProps {
 export function VisaoMensal({
   referencia,
   filtro,
+  horarios,
   aoSelecionarDia,
 }: VisaoMensalProps) {
   const dias = gradeDoMes(referencia);
@@ -41,7 +45,7 @@ export function VisaoMensal({
           const doMes = mesmoMes(data, referencia);
           const ehHoje = data === HOJE;
           const chuva = choveuEm(data);
-          const eventos = horariosDaData(data, filtro);
+          const eventos = horariosDaData(data, filtro, horarios);
           const conflitos = eventos.filter((e) => e.temConflito).length;
 
           const porTipo = ORDEM_TIPOS.map((tipo) => ({

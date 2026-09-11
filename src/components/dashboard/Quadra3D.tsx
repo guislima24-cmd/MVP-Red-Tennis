@@ -1,8 +1,12 @@
+import type { PisoQuadra } from "@/lib/types";
+
 interface Quadra3DProps {
   /** Numero da quadra ou "P" para o paredão. */
   rotulo: string;
-  /** Ocupacao do dia (0 a 1) — quanto maior, mais escuro fica o saibro. */
+  /** Ocupacao do dia (0 a 1) — quanto maior, mais escuro fica o piso. */
   taxa: number;
+  /** Saibro (laranja) ou cimento (cinza-azulado). */
+  piso?: PisoQuadra;
   /** O paredão ganha uma parede levantada no fundo em vez de uma quadra completa. */
   paredao?: boolean;
   /** Inclinacao da perspectiva, em graus. */
@@ -21,14 +25,23 @@ function misturar(inicio: string, fim: string, t: number): string {
 }
 
 /**
- * Escala de ocupacao do saibro.
- * Vazia = saibro claro e seco; lotada = saibro escuro e saturado.
+ * Escala de ocupacao do piso.
+ * Vazia = piso claro; lotada = piso escuro e saturado.
  *
  * Na pratica a ocupacao diaria fica entre ~20% e ~85%, entao a faixa util e
  * reesticada para 0..1 — sem isso as quadras ficariam quase iguais entre si.
  */
-export function corDoSaibro(taxa: number) {
+export function corDaQuadra(taxa: number, piso: PisoQuadra = "saibro") {
   const t = Math.min(1, Math.max(0, (taxa - 0.12) / 0.76));
+
+  if (piso === "cimento") {
+    return {
+      clara: misturar("#DFE6EB", "#5C6B78", t),
+      media: misturar("#C3CFD8", "#44515C", t),
+      escura: misturar("#A5B4C0", "#2B343C", t),
+    };
+  }
+
   return {
     clara: misturar("#F7D2B0", "#9A4A1B", t),
     media: misturar("#EFA771", "#7C3714", t),
@@ -37,20 +50,25 @@ export function corDoSaibro(taxa: number) {
 }
 
 /**
- * Quadra de saibro desenhada em perspectiva com CSS 3D.
+ * Quadra desenhada em perspectiva com CSS 3D.
  *
- * Elemento visual central do Dashboard: o tom do saibro escurece
- * progressivamente conforme a ocupacao do dia aumenta.
+ * Elemento visual central do Dashboard: o tom do piso escurece
+ * progressivamente conforme a ocupacao do dia aumenta. A quadra de cimento
+ * usa a mesma escala, em cinza-azulado.
  */
 export function Quadra3D({
   rotulo,
   taxa,
+  piso = "saibro",
   paredao = false,
   inclinacao = 62,
   className = "",
 }: Quadra3DProps) {
-  const cor = corDoSaibro(taxa);
-  const linha = "rgba(255, 250, 244, 0.92)";
+  const cor = corDaQuadra(taxa, piso);
+  const cimento = piso === "cimento";
+  const linha = cimento
+    ? "rgba(255, 255, 255, 0.95)"
+    : "rgba(255, 250, 244, 0.92)";
 
   return (
     <div
@@ -75,10 +93,13 @@ export function Quadra3D({
         >
           {/* Textura do pó de saibro */}
           <div
-            className="absolute inset-0 rounded-[6px] opacity-[0.22] mix-blend-overlay"
+            className={`absolute inset-0 rounded-[6px] mix-blend-overlay ${
+              cimento ? "opacity-[0.12]" : "opacity-[0.22]"
+            }`}
             style={{
-              backgroundImage:
-                "repeating-linear-gradient(92deg, rgba(255,255,255,0.5) 0 1px, transparent 1px 5px), repeating-linear-gradient(2deg, rgba(0,0,0,0.35) 0 1px, transparent 1px 7px)",
+              backgroundImage: cimento
+                ? "repeating-linear-gradient(45deg, rgba(255,255,255,0.35) 0 1px, transparent 1px 3px)"
+                : "repeating-linear-gradient(92deg, rgba(255,255,255,0.5) 0 1px, transparent 1px 5px), repeating-linear-gradient(2deg, rgba(0,0,0,0.35) 0 1px, transparent 1px 7px)",
             }}
           />
 

@@ -8,8 +8,14 @@
  * por chamadas HTTP reais nao deve exigir mudanca nos componentes.
  */
 
-/** Quadras de saibro (1 a 4) + paredao. */
+/** Quadras (1 a 4) + paredao. */
 export type Quadra = 1 | 2 | 3 | 4 | "paredao";
+
+/**
+ * Tipo de piso da quadra.
+ * A arena tem 3 quadras de saibro, 1 de cimento e o paredao.
+ */
+export type PisoQuadra = "saibro" | "cimento";
 
 /** Tipos de alocacao de horario — definem a cor do evento na Agenda. */
 export type TipoAlocacao =
@@ -148,4 +154,62 @@ export interface Torneio {
   formato: string;
   inscritos: number;
   status: "inscrições abertas" | "em andamento" | "encerrado";
+}
+
+// ---------------------------------------------------------------------------
+// Estoque e consumo interno
+//
+// A arena vende bebidas, cervejas, lanches e acessorios no balcao. O modulo
+// cobre duas necessidades levantadas com o cliente: enxergar o estoque de
+// relance e lancar o consumo na conta de alunos e professores.
+// ---------------------------------------------------------------------------
+
+export type CategoriaProduto =
+  | "Bebidas"
+  | "Cervejas"
+  | "Lanches"
+  | "Acessórios";
+
+export interface Produto {
+  id: string;
+  nome: string;
+  categoria: CategoriaProduto;
+  /** Como o item e vendido: "lata 350ml", "unidade", "tubo"… */
+  unidade: string;
+  precoCusto: number;
+  precoVenda: number;
+  /** Saldo atual em estoque. */
+  quantidade: number;
+  /** Abaixo disso o item entra em alerta de reposicao. */
+  estoqueMinimo: number;
+  ultimaEntrada: string; // ISO (YYYY-MM-DD)
+}
+
+export type TipoMovimento = "entrada" | "venda" | "perda" | "ajuste";
+
+export interface MovimentoEstoque {
+  id: string;
+  produtoId: string;
+  data: string; // ISO (YYYY-MM-DDTHH:mm)
+  tipo: TipoMovimento;
+  /** Sempre positiva — o `tipo` diz se soma ou subtrai. */
+  quantidade: number;
+  responsavel: string;
+  observacao?: string;
+}
+
+/** Consumo pode ser lancado tanto para aluno quanto para professor. */
+export type TipoPessoa = "aluno" | "professor";
+
+export interface Consumo {
+  id: string;
+  pessoaId: string;
+  tipoPessoa: TipoPessoa;
+  data: string; // ISO (YYYY-MM-DDTHH:mm)
+  produtoId: string;
+  /** Nome do produto no momento da venda (nao muda se o cadastro mudar). */
+  produtoNome: string;
+  quantidade: number;
+  valorUnitario: number;
+  status: "em aberto" | "pago";
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { GraficoFluxoCaixa } from "@/components/financeiro/GraficoFluxoCaixa";
 import { GraficoFormasPagamento } from "@/components/financeiro/GraficoFormasPagamento";
@@ -261,13 +262,16 @@ export default function PaginaFinanceiro() {
                     {professores.map((item) => (
                       <tr key={item.professor.id} className="hover:bg-areia-50">
                         <td className="px-5 py-3">
-                          <span className="flex items-center gap-2 font-medium text-areia-800">
+                          <Link
+                            href={`/professores/${item.professor.id}`}
+                            className="flex items-center gap-2 font-medium text-areia-800 hover:text-tijolo-700 hover:underline"
+                          >
                             <span
                               className="h-2.5 w-2.5 rounded-full"
                               style={{ backgroundColor: item.professor.cor }}
                             />
                             {item.professor.nome}
-                          </span>
+                          </Link>
                           <span className="mt-0.5 block text-xs text-areia-500">
                             {item.professor.especialidade} ·{" "}
                             {formatarMoeda(item.professor.valorHoraAula)}/h ·{" "}
