@@ -94,9 +94,10 @@ export default function PaginaFinanceiro() {
       </div>
 
       {/* Indicadores do mes */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
           rotulo="Recebido no mês"
+          rotuloCurto="Recebido"
           valor={formatarMoeda(resumo.recebidoNoMes)}
           detalhe={`Ticket médio ${formatarMoeda(resumo.ticketMedio)}`}
           icone={<IconeCheck className="h-5 w-5" />}
@@ -104,6 +105,7 @@ export default function PaginaFinanceiro() {
         />
         <StatCard
           rotulo="A receber"
+          rotuloCurto="A receber"
           valor={formatarMoeda(resumo.aReceber)}
           detalhe="Boletos, crédito e convênio a compensar"
           icone={<IconeRelogio className="h-5 w-5" />}
@@ -111,6 +113,7 @@ export default function PaginaFinanceiro() {
         />
         <StatCard
           rotulo="Em atraso"
+          rotuloCurto="Em atraso"
           valor={formatarMoeda(resumo.emAtraso)}
           detalhe={`${resumo.quantidadeEmAtraso} reserva(s) sem pagamento confirmado`}
           icone={<IconeAlerta className="h-5 w-5" />}
@@ -118,6 +121,7 @@ export default function PaginaFinanceiro() {
         />
         <StatCard
           rotulo="Receita recorrente"
+          rotuloCurto="Recorrente"
           valor={formatarMoeda(recorrente)}
           detalhe="Soma das mensalidades de planos ativos"
           icone={<IconeFinanceiro className="h-5 w-5" />}
@@ -246,7 +250,53 @@ export default function PaginaFinanceiro() {
                 descricao="Comissão por aula na grade semanal — visão agregada, não folha de pagamento."
                 icone={<IconeUsuarios className="h-5 w-5" />}
               />
-              <div className="overflow-x-auto rolagem-suave">
+              {/* Celular: um cartão por professor */}
+              <ul className="divide-y divide-areia-100 md:hidden">
+                {professores.map((item) => (
+                  <li key={`m-${item.professor.id}`} className="px-4 py-3">
+                    <Link
+                      href={`/professores/${item.professor.id}`}
+                      className="flex items-center justify-between gap-3"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: item.professor.cor }}
+                        />
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-areia-900">
+                            {item.professor.nome}
+                          </span>
+                          <span className="block truncate text-xs text-areia-500">
+                            {item.aulasSemana} aulas · {item.horasSemana.toFixed(0)}h
+                            por semana
+                          </span>
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-right">
+                        <span className="block text-base font-bold tabular-nums text-areia-900">
+                          {formatarMoeda(item.comissaoMes)}
+                        </span>
+                        <span className="block text-[11px] text-areia-500">
+                          por mês
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+                <li className="flex items-center justify-between bg-areia-50 px-4 py-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-areia-600">
+                    Total estimado
+                  </span>
+                  <span className="text-base font-bold tabular-nums text-areia-900">
+                    {formatarMoeda(
+                      professores.reduce((s, p) => s + p.comissaoMes, 0),
+                    )}
+                  </span>
+                </li>
+              </ul>
+
+              <div className="hidden overflow-x-auto rolagem-suave md:block">
                 <table className="w-full min-w-[520px] text-sm">
                   <thead>
                     <tr className="border-b border-areia-200 text-left text-xs uppercase tracking-wide text-areia-500">

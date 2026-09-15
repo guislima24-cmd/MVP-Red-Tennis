@@ -169,3 +169,41 @@ do servidor — mas a separação entre "dados" e "regra de leitura" continua va
 cimento (hoje, a quadra 1). O componente `Quadra3D` usa esse dado para escolher
 a escala de cor. No backend isso vira um atributo da entidade quadra, junto com
 outras características que a arena já diferencia (cobertura, iluminação).
+
+## Versão para celular
+
+A adaptação para telefone vive inteiramente abaixo do breakpoint `md` (768px),
+para que a versão de computador — já validada com o cliente — não mude. Três
+padrões foram usados:
+
+1. **Troca de componente por CSS.** Onde a diferença é estrutural (agenda
+   semanal × diária, tabela × cartões), os dois componentes ficam no DOM e a
+   visibilidade é decidida por `md:hidden` / `hidden md:block`. É simples e não
+   corre risco de divergência de hidratação, ao custo de renderizar os dois.
+   Medido no build de produção com CPU 4× mais lenta, a agenda pinta em ~350ms
+   e fica interativa em ~1,4s — folga suficiente para não valer a complexidade
+   de renderização condicional por largura.
+
+2. **Densidade.** `StatCard` aceita `rotuloCurto`, usado só no celular para o
+   rótulo não quebrar em duas linhas; `CardHeader` esconde a descrição; textos
+   de apoio e controles redundantes com a barra inferior saem de cena.
+
+3. **Navegação.** `NavegacaoMobile` substitui as abas da topbar, com 56px de
+   altura por alvo. As seções são declaradas uma única vez em
+   `src/components/layout/abas.ts`, consumido pelos dois componentes.
+
+### Armadilha registrada
+
+Ao adicionar uma variante de tamanho de fonte (`sm:text-2xl`), o `line-height`
+que vem junto dela passa a vencer um `leading-none` declarado sem variante —
+porque a regra dentro de media query aparece depois no CSS gerado. Isso mudou a
+altura dos cartões de indicador em 8px no desktop. A correção é declarar também
+`sm:leading-none`. Vale a mesma atenção para qualquer par
+`text-*` + `leading-*` quando só um dos dois ganha variante.
+
+### Como conferir que o desktop não mudou
+
+O procedimento usado aqui, que vale repetir a cada rodada de ajuste mobile:
+capturar as telas em 1024, 1440 e 1920px antes da mudança, repetir depois e
+comparar os arquivos pixel a pixel. Qualquer diferença aponta vazamento de uma
+regra mobile para cima do breakpoint.

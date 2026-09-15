@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Legenda } from "@/components/agenda/Legenda";
 import { ModalNovoHorario } from "@/components/agenda/ModalNovoHorario";
+import { VisaoDiaria } from "@/components/agenda/VisaoDiaria";
 import { VisaoMensal } from "@/components/agenda/VisaoMensal";
 import { VisaoSemanal } from "@/components/agenda/VisaoSemanal";
 import { Card } from "@/components/ui/Card";
@@ -66,6 +67,8 @@ function Agenda() {
     horaInicio?: string;
   }>({});
   const [ultimoCriado, setUltimoCriado] = useState<string | null>(null);
+  /** Dia em foco na visão do celular. */
+  const [diaSelecionado, setDiaSelecionado] = useState(HOJE);
 
   const filtro: FiltroAgenda = useMemo(
     () => ({ quadra, professor, tipo }),
@@ -73,6 +76,10 @@ function Agenda() {
   );
 
   const datas = useMemo(() => datasDaSemana(referencia), [referencia]);
+
+  // O dia em foco precisa pertencer à semana exibida; ao trocar de semana,
+  // cai no primeiro dia dela.
+  const diaEmFoco = datas.includes(diaSelecionado) ? diaSelecionado : datas[0];
   const total = listarHorarios(filtro, horarios).length;
   const conflitos = contarConflitos(filtro, horarios);
   const professores = listarProfessores();
@@ -146,7 +153,15 @@ function Agenda() {
             valor={visao}
             aoMudar={setVisao}
             opcoes={[
-              { valor: "semana", rotulo: "Semana" },
+              {
+                valor: "semana",
+                rotulo: (
+                  <>
+                    <span className="md:hidden">Dia</span>
+                    <span className="hidden md:inline">Semana</span>
+                  </>
+                ),
+              },
               { valor: "mes", rotulo: "Mês" },
             ]}
           />
@@ -188,7 +203,7 @@ function Agenda() {
             <p className="text-sm font-semibold text-tijolo-800">
               {conflitos} horários em conflito nesta grade
             </p>
-            <p className="text-xs text-tijolo-700/80">
+            <p className="hidden text-xs text-tijolo-700/80 md:block">
               Há mais de um agendamento ocupando a mesma quadra no mesmo horário —
               os eventos afetados estão destacados com borda vermelha.
             </p>
@@ -198,7 +213,69 @@ function Agenda() {
 
       {/* Filtros */}
       <Card>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-areia-200 px-4 py-3">
+        {/* Os mesmos controles: recolhidos no celular, sempre abertos no desktop */}
+        <details className="border-b border-areia-200 md:hidden">
+          <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold text-areia-700">
+            <IconeFiltro className="h-4 w-4" />
+            Filtros e legenda
+          </summary>
+          <div className="flex flex-col gap-3 px-4 pb-4">
+          <GrupoFiltro rotulo="Quadra">
+            <BotaoFiltro
+              ativo={quadra === "todas"}
+              aoClicar={() => setQuadra("todas")}
+            >
+              Todas
+            </BotaoFiltro>
+            {QUADRAS.map((q) => (
+              <BotaoFiltro
+                key={String(q)}
+                ativo={quadra === q}
+                aoClicar={() => setQuadra(q)}
+              >
+                {rotuloQuadra(q)}
+              </BotaoFiltro>
+            ))}
+          </GrupoFiltro>
+
+          <GrupoFiltro rotulo="Professor">
+            <BotaoFiltro
+              ativo={professor === "todos"}
+              aoClicar={() => setProfessor("todos")}
+            >
+              Todos
+            </BotaoFiltro>
+            {professores.map((p) => (
+              <BotaoFiltro
+                key={p.id}
+                ativo={professor === p.nome}
+                aoClicar={() => setProfessor(p.nome)}
+                cor={p.cor}
+              >
+                {p.nome}
+              </BotaoFiltro>
+            ))}
+          </GrupoFiltro>
+
+          <GrupoFiltro rotulo="Tipo">
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value as TipoAlocacao | "todos")}
+              className="rounded-lg border border-areia-200 bg-white px-2.5 py-1.5 text-xs font-medium text-areia-700 focus:border-saibro-500 focus:outline-none"
+            >
+              <option value="todos">Todos os tipos</option>
+              {ORDEM_TIPOS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </GrupoFiltro>
+            <Legenda className="pt-1" />
+          </div>
+        </details>
+
+        <div className="hidden flex-wrap items-center gap-x-6 gap-y-3 border-b border-areia-200 px-4 py-3 md:flex">
           <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-areia-500">
             <IconeFiltro className="h-4 w-4" />
             Filtros
@@ -257,23 +334,44 @@ function Agenda() {
           </GrupoFiltro>
         </div>
 
-        <div className="border-b border-areia-200 px-4 py-2.5">
+        <div className="hidden border-b border-areia-200 px-4 py-2.5 md:block">
           <Legenda />
         </div>
 
         {visao === "semana" ? (
-          <VisaoSemanal
-            datas={datas}
-            filtro={filtro}
-            horarios={horarios}
-            aoAdicionar={(diaSemana, horaInicio) =>
-              abrirFormulario({
-                quadra: quadra === "todas" ? undefined : quadra,
-                diaSemana,
-                horaInicio,
-              })
-            }
-          />
+          <>
+            {/* Celular: um dia por vez. Desktop: a grade semanal completa. */}
+            <div className="md:hidden">
+              <VisaoDiaria
+                datas={datas}
+                dia={diaEmFoco}
+                aoTrocarDia={setDiaSelecionado}
+                filtro={filtro}
+                horarios={horarios}
+                aoAdicionar={(diaSemana, horaInicio) =>
+                  abrirFormulario({
+                    quadra: quadra === "todas" ? undefined : quadra,
+                    diaSemana,
+                    horaInicio,
+                  })
+                }
+              />
+            </div>
+            <div className="hidden md:block">
+              <VisaoSemanal
+                datas={datas}
+                filtro={filtro}
+                horarios={horarios}
+                aoAdicionar={(diaSemana, horaInicio) =>
+                  abrirFormulario({
+                    quadra: quadra === "todas" ? undefined : quadra,
+                    diaSemana,
+                    horaInicio,
+                  })
+                }
+              />
+            </div>
+          </>
         ) : (
           <VisaoMensal
             referencia={referencia}
@@ -281,6 +379,7 @@ function Agenda() {
             horarios={horarios}
             aoSelecionarDia={(data) => {
               setReferencia(data);
+              setDiaSelecionado(data);
               setVisao("semana");
             }}
           />

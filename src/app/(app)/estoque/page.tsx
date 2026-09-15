@@ -73,9 +73,10 @@ export default function PaginaEstoque() {
       </div>
 
       {/* Indicadores */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
           rotulo="Unidades em estoque"
+          rotuloCurto="Unidades"
           valor={String(resumo.unidadesEmEstoque)}
           detalhe={`${resumo.itensCadastrados} itens cadastrados`}
           icone={<IconeEstoque className="h-5 w-5" />}
@@ -83,6 +84,7 @@ export default function PaginaEstoque() {
         />
         <StatCard
           rotulo="Precisam de reposição"
+          rotuloCurto="Repor"
           valor={String(resumo.precisamRepor)}
           detalhe={
             resumo.esgotados > 0
@@ -94,6 +96,7 @@ export default function PaginaEstoque() {
         />
         <StatCard
           rotulo="Vendas no mês"
+          rotuloCurto="Vendas"
           valor={formatarMoeda(resumo.vendasNoMes)}
           detalhe="Consumo lançado nas fichas"
           icone={<IconeSubiu className="h-5 w-5" />}
@@ -101,6 +104,7 @@ export default function PaginaEstoque() {
         />
         <StatCard
           rotulo="Valor do estoque"
+          rotuloCurto="Valor"
           valor={formatarMoeda(resumo.valorDeVenda)}
           detalhe={`Custo ${formatarMoeda(resumo.valorDeCusto)} · margem ${formatarMoeda(resumo.margemPotencial)}`}
           icone={<IconeFinanceiro className="h-5 w-5" />}

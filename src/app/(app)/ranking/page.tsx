@@ -38,9 +38,10 @@ export default function PaginaRanking() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
         <StatCard
           rotulo="Líder do ranking"
+          rotuloCurto="Líder"
           valor={nomeCompacto(lider.nome)}
           detalhe={`${lider.rankingPontuacao} pontos · Categoria ${lider.categoriaRanking}`}
           icone={<IconeTrofeu className="h-5 w-5" />}
@@ -48,12 +49,14 @@ export default function PaginaRanking() {
         />
         <StatCard
           rotulo="Jogadores no ranking"
+          rotuloCurto="Jogadores"
           valor={String(geral.length)}
           detalhe="Todos os matriculados pontuam ao longo das etapas"
           icone={<IconeUsuarios className="h-5 w-5" />}
         />
         <StatCard
           rotulo="Próxima etapa"
+          rotuloCurto="Próxima etapa"
           valor={formatarData(etapaAtual.data)}
           detalhe={etapaAtual.nome}
           icone={<IconeBola className="h-5 w-5" />}

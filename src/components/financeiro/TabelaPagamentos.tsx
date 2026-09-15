@@ -20,8 +20,86 @@ export function TabelaPagamentos({ pagamentos }: { pagamentos: Pagamento[] }) {
   }
 
   return (
-    <div className="overflow-x-auto rolagem-suave">
-      <table className="w-full min-w-[940px] text-sm">
+    <>
+      {/* Celular: cada lançamento vira um cartão — a tabela de 7 colunas
+          exigiria rolagem horizontal. */}
+      <ul className="divide-y divide-areia-100 md:hidden">
+        {pagamentos.map((pagamento) => {
+          const forma = ESTILO_FORMA_PAGAMENTO[pagamento.formaPagamento];
+          const confirmado = pagamento.status === "confirmado";
+          const atrasado = pagamento.diasEmAtraso > 0;
+          const nome = nomeDoAluno(pagamento.alunoId);
+
+          return (
+            <li
+              key={pagamento.id}
+              className={`px-4 py-3 ${atrasado ? "bg-tijolo-50/50" : ""}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <Link
+                  href={`/alunos/${pagamento.alunoId}`}
+                  className="flex min-w-0 items-center gap-2"
+                >
+                  <Avatar
+                    id={pagamento.alunoId}
+                    nome={nome}
+                    src={caminhoAvatar(pagamento.alunoId)}
+                    tamanho="sm"
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-areia-900">
+                      {nome}
+                    </span>
+                    <span className="block truncate text-xs text-areia-500">
+                      {formatarData(pagamento.data)}
+                      {pagamento.nomePagante !== nome &&
+                        ` · pago por ${pagamento.nomePagante}`}
+                    </span>
+                  </span>
+                </Link>
+                <span className="shrink-0 text-base font-bold tabular-nums text-areia-900">
+                  {formatarMoeda(pagamento.valor)}
+                </span>
+              </div>
+
+              <p className="mt-2 text-sm text-areia-700">{pagamento.item}</p>
+
+              {pagamento.valorTotalPass !== undefined && (
+                <p className="mt-0.5 text-xs text-areia-500">
+                  Convênio {formatarMoeda(pagamento.valorTotalPass)} + complemento{" "}
+                  {formatarMoeda(pagamento.valor - pagamento.valorTotalPass)}
+                </p>
+              )}
+
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <Badge cor={forma.cor} fundo={forma.fundo}>
+                  {forma.label}
+                </Badge>
+                {confirmado ? (
+                  <Badge cor="#15803D" fundo="#F0FDF4">
+                    <IconeCheck className="h-3.5 w-3.5" />
+                    {pagamento.participantesConfirmados
+                      ? "Confirmado"
+                      : "Pago · conferir turma"}
+                  </Badge>
+                ) : atrasado ? (
+                  <Badge cor="#8A2118" fundo="#FBE3E0" borda="#EC9A90">
+                    <IconeAlerta className="h-3.5 w-3.5" />
+                    {pagamento.diasEmAtraso} dias em atraso
+                  </Badge>
+                ) : (
+                  <Badge cor="#A16207" fundo="#FEFBEB" borda="#F5D97A">
+                    Aguardando compensação
+                  </Badge>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="hidden overflow-x-auto rolagem-suave md:block">
+        <table className="w-full min-w-[940px] text-sm">
         <thead>
           <tr className="border-b border-areia-200 text-left text-xs uppercase tracking-wide text-areia-500">
             <th className="px-5 py-2.5 font-medium">Data</th>
@@ -117,6 +195,7 @@ export function TabelaPagamentos({ pagamentos }: { pagamentos: Pagamento[] }) {
           })}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }

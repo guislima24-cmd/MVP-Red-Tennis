@@ -1,8 +1,10 @@
 "use client";
 
+import type React from "react";
+
 interface Opcao<T extends string> {
   valor: T;
-  rotulo: string;
+  rotulo: React.ReactNode;
 }
 
 interface SegmentadoProps<T extends string> {

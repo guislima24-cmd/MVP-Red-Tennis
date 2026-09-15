@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 interface StatCardProps {
   rotulo: string;
+  /** Versão enxuta do rótulo, usada no celular para não quebrar em duas linhas. */
+  rotuloCurto?: string;
   valor: string;
   detalhe?: string;
   icone?: ReactNode;
@@ -34,6 +36,7 @@ const TONS = {
 
 export function StatCard({
   rotulo,
+  rotuloCurto,
   valor,
   detalhe,
   icone,
@@ -43,24 +46,37 @@ export function StatCard({
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-2xl border p-4 shadow-card ${estilo.caixa}`}
+      className={`flex items-start gap-2.5 rounded-2xl border p-3 shadow-card sm:gap-3 sm:p-4 ${estilo.caixa}`}
     >
       {icone && (
         <span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${estilo.icone}`}
+          className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:flex ${estilo.icone}`}
         >
           {icone}
         </span>
       )}
       <div className="min-w-0">
         <p className="text-xs font-medium uppercase tracking-wide text-areia-500">
-          {rotulo}
+          {rotuloCurto ? (
+            <>
+              <span className="sm:hidden">{rotuloCurto}</span>
+              <span className="hidden sm:inline">{rotulo}</span>
+            </>
+          ) : (
+            rotulo
+          )}
         </p>
-        <p className={`mt-1 text-2xl font-semibold leading-none ${estilo.valor}`}>
+        {/* sm:leading-none é necessário: a variante sm:text-2xl traz o
+            line-height dela e sobrescreveria o leading-none base. */}
+        <p
+          className={`mt-1 text-xl font-semibold leading-none sm:text-2xl sm:leading-none ${estilo.valor}`}
+        >
           {valor}
         </p>
         {detalhe && (
-          <p className="mt-1.5 text-xs leading-snug text-areia-600">{detalhe}</p>
+          <p className="mt-1.5 hidden text-xs leading-snug text-areia-600 sm:block">
+            {detalhe}
+          </p>
         )}
       </div>
     </div>

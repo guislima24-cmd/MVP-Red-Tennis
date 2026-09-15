@@ -1,3 +1,4 @@
+import { NavegacaoMobile } from "@/components/layout/NavegacaoMobile";
 import { Topbar } from "@/components/layout/Topbar";
 
 /**
@@ -21,12 +22,15 @@ export default function LayoutApp({
   return (
     <div className="fundo-arena min-h-screen">
       <Topbar />
-      <main className="w-full px-4 py-6 sm:px-6 sm:py-8 2xl:px-10">
+      {/* pb-20 no celular reserva o espaço da barra de navegação fixa */}
+      <main className="w-full px-4 py-6 pb-24 sm:px-6 sm:py-8 md:pb-8 2xl:px-10">
         {children}
       </main>
-      <footer className="w-full px-4 pb-8 pt-2 text-center text-xs text-areia-500 sm:px-6">
+      <footer className="hidden w-full px-4 pb-8 pt-2 text-center text-xs text-areia-500 sm:px-6 md:block">
         MVP desenvolvido pela UFABC Júnior · dados fictícios para demonstração
       </footer>
+
+      <NavegacaoMobile />
     </div>
   );
 }

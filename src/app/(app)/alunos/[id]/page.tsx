@@ -60,9 +60,10 @@ export default function PaginaFichaAluno() {
       />
 
       {/* Indicadores do aluno */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
           rotulo="Aulas realizadas"
+          rotuloCurto="Aulas"
           valor={String(resumo.aulasRealizadas)}
           detalhe={`${Math.round(resumo.frequencia * 100)}% de frequência no período`}
           icone={<IconeCheck className="h-5 w-5" />}
@@ -70,12 +71,14 @@ export default function PaginaFichaAluno() {
         />
         <StatCard
           rotulo="Faltas e reagendamentos"
+          rotuloCurto="Faltas"
           valor={`${resumo.faltas} / ${resumo.reagendadas}`}
           detalhe="Faltas / aulas reagendadas"
           icone={<IconeAlerta className="h-5 w-5" />}
         />
         <StatCard
           rotulo="Total pago"
+          rotuloCurto="Pago"
           valor={formatarMoeda(resumo.totalPago)}
           detalhe={
             resumo.emAberto > 0
@@ -87,6 +90,7 @@ export default function PaginaFichaAluno() {
         />
         <StatCard
           rotulo="Pontuação no ranking"
+          rotuloCurto="Pontos"
           valor={String(aluno.rankingPontuacao)}
           detalhe={`Categoria ${aluno.categoriaRanking} · ${
             aluno.variacaoRanking > 0

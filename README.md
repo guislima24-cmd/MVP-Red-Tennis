@@ -52,6 +52,23 @@ A navegação principal fica na topbar. As fichas de Aluno e de Professor **não
 são abas: abrem ao clicar no nome da pessoa na Agenda, no Financeiro, no
 Dashboard ou no Ranking.
 
+### No celular
+
+O sistema é usável de verdade no telefone — algo que nem o sistema antigo nem o
+atual da arena oferecem. Abaixo de **768px** a interface se reorganiza:
+
+| No computador | No celular |
+| --- | --- |
+| Abas na topbar | Barra fixa no rodapé, com alvos de toque de 56px |
+| Agenda em grade semanal (7 colunas) | Agenda **dia a dia**, com régua de datas no topo |
+| Tabelas de lançamentos, aulas e pagamentos | Os mesmos dados em cartões empilhados |
+| Filtros e legenda sempre abertos | Recolhidos atrás de "Filtros e legenda" |
+| Pirâmide do torneio em faixas fixas | Faixas largas quebram em várias linhas |
+
+Nada disso altera a versão de computador: as mudanças vivem todas em
+breakpoints `md:` para baixo, e as telas em 1024px, 1440px e 1920px continuam
+pixel a pixel idênticas ao que eram antes.
+
 ### O que dá para fazer ao vivo na demonstração
 
 O MVP não tem backend, mas as ações abaixo funcionam de verdade durante a
@@ -139,15 +156,13 @@ Paleta derivada do logo da Red Tennis, definida em `tailwind.config.ts`:
 - **`tijolo`** — vermelho escuro do letreiro (ações e alertas)
 - **`areia`** — neutros quentes (fundos e textos)
 
-O logo é desenhado em **SVG vetorial** (`src/components/layout/Logo.tsx`), o que
-garante nitidez em qualquer tamanho e nenhuma dependência de rede.
+### Logo
 
-### Usar o arquivo oficial do logo
-
-1. Coloque a imagem em `public/` (ex.: `public/logo-red-tennis.webp`).
-2. Em `src/lib/branding.ts`, troque `LOGO_OFICIAL` para o caminho do arquivo.
-
-Todas as telas usam o mesmo componente — não é preciso alterar mais nada.
+O logo oficial da arena está em `public/`, recortado com fundo transparente,
+em duas versões: `logo-red-tennis.webp` (quadra + letreiro, usado no login) e
+`logo-red-tennis-marca.webp` (só a quadra, usado na topbar, onde o letreiro
+ficaria ilegível). Para trocar, substitua os arquivos mantendo os nomes — ou
+aponte as constantes em `src/lib/branding.ts` para os novos caminhos.
 
 ### Fotos dos alunos
 

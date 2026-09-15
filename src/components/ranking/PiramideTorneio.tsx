@@ -41,8 +41,10 @@ export function PiramideTorneio({
   });
 
   return (
-    <div className="space-y-3 overflow-x-auto rolagem-suave p-4 sm:p-6">
-      <div className="min-w-[680px] space-y-3">
+    /* No celular as faixas largas quebram em várias linhas — a forma de
+       pirâmide se mantém no topo e nada exige rolagem lateral. */
+    <div className="space-y-3 p-3 sm:p-6 md:overflow-x-auto md:rolagem-suave">
+      <div className="space-y-3 md:min-w-[680px]">
         {grupos.map(({ categoria, faixas: doGrupo }) => {
           const estilo = ESTILO_CATEGORIA[categoria];
           const emFoco =
@@ -75,13 +77,13 @@ export function PiramideTorneio({
                 {doGrupo.map((faixa, i) => (
                   <div
                     key={i}
-                    className="flex flex-wrap items-stretch justify-center gap-2.5"
+                    className="flex flex-wrap items-stretch justify-center gap-1.5 sm:gap-2.5"
                   >
                     {faixa.map(({ posicao, aluno }) => (
                       <Link
                         key={aluno.id}
                         href={`/alunos/${aluno.id}`}
-                        className={`group flex w-[132px] flex-col items-center rounded-xl border bg-white px-2 py-2.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-card-hover ${
+                        className={`group flex w-[92px] flex-col items-center rounded-xl border bg-white px-1.5 py-2.5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-card-hover sm:w-[112px] sm:px-2 md:w-[132px] ${
                           posicao === 1
                             ? "border-saibro-400 ring-2 ring-saibro-400/30"
                             : "border-areia-200"

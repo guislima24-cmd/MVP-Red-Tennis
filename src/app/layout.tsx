@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "MVP do sistema de gestão da arena Red Tennis — agenda, alunos, financeiro e ranking.",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.png",
   },
 };
 

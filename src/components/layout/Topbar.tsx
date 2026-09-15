@@ -3,24 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "./Logo";
-import {
-  IconeAgenda,
-  IconeEstoque,
-  IconeFinanceiro,
-  IconeQuadras,
-  IconeSair,
-  IconeTrofeu,
-} from "@/components/ui/Icons";
+import { ABAS } from "./abas";
+import { IconeSair } from "@/components/ui/Icons";
 import { ARENA } from "@/lib/mock-data";
 import { useApp } from "@/store/AppStore";
 
-const ABAS = [
-  { href: "/dashboard", rotulo: "Dashboard", Icone: IconeQuadras },
-  { href: "/agenda", rotulo: "Agenda", Icone: IconeAgenda },
-  { href: "/financeiro", rotulo: "Financeiro", Icone: IconeFinanceiro },
-  { href: "/estoque", rotulo: "Estoque", Icone: IconeEstoque },
-  { href: "/ranking", rotulo: "Ranking / Torneio", Icone: IconeTrofeu },
-];
 
 export function Topbar() {
   const pathname = usePathname();
@@ -37,12 +24,12 @@ export function Topbar() {
       {/* Faixa superior: marca, identificacao da arena e usuario logado */}
       <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6 2xl:px-10">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <Logo variante="marca" className="h-8 w-auto" />
-          <span className="hidden sm:block">
+          <Logo variante="marca" className="h-7 w-auto sm:h-8" />
+          <span>
             <span className="block text-sm font-bold uppercase tracking-[0.18em] text-tijolo-700">
               Red Tennis
             </span>
-            <span className="block text-[11px] text-areia-500">
+            <span className="hidden text-[11px] text-areia-500 sm:block">
               {ARENA.endereco} · {ARENA.horarioFuncionamento}
             </span>
           </span>
@@ -76,8 +63,8 @@ export function Topbar() {
         </div>
       </div>
 
-      {/* Abas de navegacao principal */}
-      <nav className="w-full px-2 sm:px-4 2xl:px-8">
+      {/* Abas de navegacao — no celular a navegacao fica na barra inferior */}
+      <nav className="hidden w-full px-2 sm:px-4 md:block 2xl:px-8">
         <ul className="flex items-center gap-1 overflow-x-auto rolagem-suave">
           {ABAS.map(({ href, rotulo, Icone }) => {
             const ativo = pathname.startsWith(href);

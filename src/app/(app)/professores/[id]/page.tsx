@@ -93,9 +93,10 @@ export default function PaginaFichaProfessor() {
       </section>
 
       {/* Indicadores */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
           rotulo="Aulas por semana"
+          rotuloCurto="Aulas/sem"
           valor={String(agenda.aulasSemana)}
           detalhe="Alocações fixas na grade"
           icone={<IconeAgenda className="h-5 w-5" />}
@@ -103,18 +104,21 @@ export default function PaginaFichaProfessor() {
         />
         <StatCard
           rotulo="Horas por semana"
+          rotuloCurto="Horas/sem"
           valor={`${agenda.horasSemana.toFixed(0)}h`}
           detalhe="Somando todas as turmas"
           icone={<IconeRelogio className="h-5 w-5" />}
         />
         <StatCard
           rotulo="Alunos atendidos"
+          rotuloCurto="Alunos"
           valor={String(agenda.alunosAtendidos.length)}
           detalhe="Pessoas distintas na semana"
           icone={<IconeUsuarios className="h-5 w-5" />}
         />
         <StatCard
           rotulo="Comissão estimada"
+          rotuloCurto="Comissão"
           valor={formatarMoeda(comissaoMes)}
           detalhe="Por mês, com base na grade atual"
           icone={<IconeFinanceiro className="h-5 w-5" />}

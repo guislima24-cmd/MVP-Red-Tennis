@@ -68,16 +68,18 @@ export default function PaginaDashboard() {
           </p>
         </div>
 
-        <Link href="/agenda" className="btn-secundario">
+        {/* No celular a agenda já está na barra inferior */}
+        <Link href="/agenda" className="btn-secundario hidden md:inline-flex">
           <IconeAgenda className="h-4 w-4" />
           Abrir agenda completa
         </Link>
       </div>
 
       {/* Indicadores do dia */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
           rotulo="Aulas e locações hoje"
+          rotuloCurto="Hoje"
           valor={String(resumo.aulasHoje)}
           detalhe="Distribuídas entre as 4 quadras e o paredão"
           icone={<IconeAgenda className="h-5 w-5" />}
@@ -85,18 +87,21 @@ export default function PaginaDashboard() {
         />
         <StatCard
           rotulo="Alunos em quadra"
+          rotuloCurto="Alunos"
           valor={String(resumo.alunosEmQuadra)}
           detalhe="Pessoas com horário marcado hoje"
           icone={<IconeUsuarios className="h-5 w-5" />}
         />
         <StatCard
           rotulo="Ocupação média"
+          rotuloCurto="Ocupação"
           valor={`${Math.round(resumo.taxaOcupacaoMedia * 100)}%`}
           detalhe={`Maior procura: ${rotuloQuadra(resumo.quadraMaisCheia)}`}
           icone={<IconeQuadras className="h-5 w-5" />}
         />
         <StatCard
           rotulo="Pendências financeiras"
+          rotuloCurto="Pendências"
           valor={formatarMoeda(financeiro.emAtraso)}
           detalhe={`${financeiro.quantidadeEmAtraso} reserva(s) sem pagamento confirmado`}
           icone={<IconeFinanceiro className="h-5 w-5" />}
@@ -282,7 +287,7 @@ function EscalaOcupacao() {
   const passos = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="hidden flex-wrap items-center gap-x-4 gap-y-2 md:flex">
       {(["saibro", "cimento"] as const).map((piso) => (
         <div key={piso} className="flex items-center gap-2">
           <span className="text-[11px] capitalize text-areia-500">{piso}</span>

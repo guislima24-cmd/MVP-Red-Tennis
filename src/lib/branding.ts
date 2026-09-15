@@ -1,13 +1,19 @@
 /**
- * Ponto unico de troca do logo.
+ * Arquivos da marca Red Tennis.
  *
- * O MVP desenha a marca da Red Tennis em SVG vetorial (arquivo
- * `src/components/layout/Logo.tsx`), o que garante nitidez em qualquer
- * tamanho e zero dependencia de rede.
+ * As imagens são o logo oficial da arena, recortado com fundo transparente
+ * para assentar sobre qualquer superfície.
  *
- * Para usar o arquivo oficial no lugar do vetor:
- *   1. coloque a imagem em `public/` (ex.: `public/logo-red-tennis.webp`);
- *   2. troque o valor abaixo para o caminho do arquivo.
- * Nao e preciso alterar mais nada — todas as telas usam o mesmo componente.
+ * - `LOGO_COMPLETO`: a quadra em curva sobre o letreiro RED TENNIS. Usado onde
+ *   a marca é o elemento principal da tela (login).
+ * - `LOGO_MARCA`: apenas a quadra. Usado em espaços estreitos, como a topbar,
+ *   onde o letreiro ficaria ilegível e o nome já aparece como texto ao lado.
+ *
+ * Para trocar o logo: substitua os arquivos em `public/` mantendo os nomes, ou
+ * aponte as constantes abaixo para os novos caminhos.
  */
-export const LOGO_OFICIAL: string | null = null;
+export const LOGO_COMPLETO = "/logo-red-tennis.webp";
+export const LOGO_MARCA = "/logo-red-tennis-marca.webp";
+
+/** Proporções dos arquivos, para reservar o espaço e evitar salto no layout. */
+export const PROPORCAO_LOGO = { completo: 447 / 311, marca: 447 / 150 };

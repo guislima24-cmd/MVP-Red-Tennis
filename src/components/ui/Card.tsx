@@ -36,8 +36,12 @@ export function CardHeader({
         )}
         <div>
           <h2 className="text-base font-semibold text-areia-900">{titulo}</h2>
+          {/* No celular o texto de apoio sai: a tela é curta e o título já
+              nomeia o bloco. */}
           {descricao && (
-            <p className="mt-0.5 text-sm text-areia-600">{descricao}</p>
+            <p className="mt-0.5 hidden text-sm text-areia-600 md:block">
+              {descricao}
+            </p>
           )}
         </div>
       </div>
